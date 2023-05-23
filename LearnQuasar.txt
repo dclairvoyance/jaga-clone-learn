@@ -1,0 +1,458 @@
+# overview
+<template>
+    <div>
+        <button @click="toggleMessage">Show/Hide</button>
+        <p v-if="showMessage"> {{ message }} </p>
+    </div>
+</template>
+
+<script>
+    export default {
+        data() {
+            return {
+                message: "message",
+                showMessage: true
+            };
+        },
+        methods: {
+            toggleMessage() {
+                this.showMessage = !showMessage
+            }
+        }
+    }
+</script>
+
+<style>
+    p {
+        color: red;
+    }
+</style>
+
+
+
+# methods -> data: this
+# boot -> execute code before app starts
+
+
+
+# standard output
+<template>
+  <q-page padding>
+    <p>test</p>
+  </q-page>
+</template>
+
+
+
+# message output
+<template>
+  <q-page padding>
+    <p>{{ message }}</p>
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  data() {
+    return {
+      message: "test-message"
+    };
+  }
+})
+</script>
+
+# binding output
+<template>
+  <q-page padding>
+    <input type="text" v-model="message" />
+    <p>{{ message }}</p>
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  data() {
+    return {
+      message: "test-message"
+    };
+  }
+})
+</script>
+
+
+
+# events: @keyup, @keyup.esc, @mouseenter, @mouseleave,
+<template>
+  <q-page padding>
+    <input type="text" v-model="message" @keyup="handleKeyup" />
+    <button @click="clearMessage">Do something!</button>
+    <p>{{ message }}</p>
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  data() {
+    return {
+      message: "test-message"
+    };
+  },
+  methods: {
+    clearMessage() {
+      this.message = "";
+    },
+    alertMessage() {
+      alert(this.message);
+    },
+    handleKeyup(e) {
+      if (e.keyCode == 27) {
+        this.clearMessage();
+      }
+      else if (e.keyCode == 13) {
+        this.alertMessage();
+      }
+    }
+  }
+})
+</script>
+
+
+
+# v-show (display: none;) and v-if v-else
+<template>
+  <q-page padding>
+    # v-show
+    <input type="text" v-model="message" />
+    <p class="border">{{ message }} v-show="message.length"</p>
+
+    # v-if v-else
+    <input type="text" v-model="message" />
+    <p v-if="message.length" class="border">{{ message }}</p>
+    <p v-else> No message!</p>
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  data() {
+    return {
+      message: "test-message"
+    };
+  }
+})
+</script>
+
+<style>
+  .border {
+    border: 1px solid grey;
+  }
+</style>
+
+
+
+# methods but bad
+<template>
+  <q-page padding>
+    <input type="text" />
+    <p class="border">{{ messageUpperCase() }}</p>
+    <p>{{ message }}</p>
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  data() {
+    return {
+      message: "test-message"
+    };
+  },
+  methods: {
+    messageUpperCase() {
+        return this.message.toUpperCase();
+    }
+  }
+})
+</script>
+
+<style>
+  .border {
+    border: 1px solid grey;
+  }
+</style>
+
+
+
+# methods but good -> computed -> method like static data
+<template>
+  <q-page padding>
+    <input type="text" />
+    <p class="border">{{ messageUpperCase }}</p>
+    <p>{{ message }}</p>
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  data() {
+    return {
+      message: "test-message"
+    };
+  },
+  computed: {
+    messageUpperCase() {
+        return this.message.toUpperCase();
+    }
+  },
+  methods: {
+
+  }
+})
+</script>
+
+<style>
+  .border {
+    border: 1px solid grey;
+  }
+</style>
+
+
+
+# filters -> manipulate value
+<template>
+  <q-page padding>
+    <input type="text" />
+    <p class="border">{{ messageUpperCase }}</p>
+    <p class="border">{{ message | messageLowerCase }}</p>
+    <p>{{ message }}</p>
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  data() {
+    return {
+      message: "test-message"
+    };
+  },
+  computed: {
+    messageUpperCase() {
+        return this.message.toUpperCase();
+    }
+  },
+  filters: {
+    messageLowerCase(value) {
+        return value.toLowerCase();
+    }
+  },
+  methods: {
+
+  }
+})
+</script>
+
+<style>
+  .border {
+    border: 1px solid grey;
+  }
+</style>
+
+
+
+# directives
+<template>
+  <q-page padding>
+    <input 
+      v-autofocus 
+      type="text" v-model="message" />
+    <p>{{ message }}</p>
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  data() {
+    return {
+      message: "test-message"
+    };
+  },
+  directives: {
+    autofocus: {
+        inserted(el) {
+            el.focus();
+        }
+    }
+  }
+})
+</script>
+
+
+
+# v-bind: inject class (style) or style (script computed)
+<template>
+  <q-page padding>
+    <input
+      # 1st option
+      v-bind:class="'error': message.length > 10"
+      # 2nd option
+      :class="'error': message.length > 10"
+      # 3rd option
+      :style="errorStyle"
+
+      type="text" v-model="message" />
+    <p>{{ message }}</p>
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  data() {
+    return {
+      message: "test-message"
+    };
+  },
+  computed: {
+    errorStyle() {
+        if (this.message.length > 10) {
+            return {
+                'color': 'red',
+                'background: 'pink'
+            }
+        }
+    }
+  }
+})
+</script>
+
+<style>
+  .error {
+    color: red;
+    background: pink;
+  }
+</style>
+
+
+
+# hooks
+# beforeCreate() -> before component created
+# created() -> at the point component created -> done virtually not rendered
+# beforeMount() -> before markup commited to view
+# mounted() -> markup commited to view -> most of the time
+# component is updated:
+# beforeUpdate()
+# updated()
+# component is destroyed: (navigate to other pages)
+# beforeDestroy()
+# destroyed()
+
+
+
+# refs -> not good for reactive data -> vue overwrite refs
+#         good for form validation, autofocus in fields
+<template>
+  <q-page padding>
+    <input 
+      ref="messageInput"
+      type="text" v-model="message" />
+    <p>{{ message }}</p>
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  data() {
+    return {
+      message: "test-message"
+    };
+  },
+  mounted() {
+    this.$refs.messageInput.className = 'bg-green';
+  }
+})
+</script>
+
+
+
+# basic list
+<template>
+  <q-page padding>
+    <ul>
+      <li v-for="(task, index) in tasks" :key="task.id">
+        <p>{{ task.name }}</p>
+        <p>{{ task.dueDate }} @{{ task.dueTime }}</p>
+        <button @click="deleteTask(index)">X</button>
+      </li>
+    </ul>
+  </q-page>
+</template>
+
+<script>
+import { defineComponent } from 'vue'
+
+export default defineComponent({
+  data () {
+    return {
+      tasks: [
+        {
+          id: 1,
+          name: "Go to shop",
+          dueDate: "2023/05/21",
+          dueTime: "18:30"
+        },
+        {
+          id: 2,
+          name: "Get bananas",
+          dueDate: "2023/05/22",
+          dueTime: "16:00"
+        }
+      ]
+    }
+  },
+  methods: {
+    deleteTask(index) {
+      this.tasks.splice(index, 1);
+    }
+  }
+})
+</script>
+
+
+
+# props
+# IndexPage.vue
+
+# Task.vue
+
+
+
+# important: 
+# exact
+# q-icon name=""
+# q-item to="/"
+# q-route-tab to="/"
+# q-drawer :breakpoint="767"
+# @media screen and (min-width: 768px) {
+    .q-footer {
+      display: none;
+    }
+# }
+# q-item class="" (bukan :class="", kenapa?)
