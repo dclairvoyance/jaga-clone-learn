@@ -455,4 +455,13 @@ export default defineComponent({
       display: none;
     }
 # }
-# q-item class="" (bukan :class="", kenapa?)
+# q-item class=""
+# q-item :class="!task.completed > 'bg-orange-1' : 'bg-green-1'"
+# q-item-label :class="{ 'text-strikethrough' : task.completed }"
+# global css -> App.vue
+
+# state
+# mutations -> synchronous
+# actions -> asynchronous
+# getters -> get data from state
+# namespaced = true -> multiple store module in one app

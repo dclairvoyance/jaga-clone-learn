@@ -31,8 +31,9 @@ Website akan dijalankan pada ip:port localhost:8080
 | Hari, Tanggal, XM | Pekerjaan                |
 | ----------------- | ------------------------ |
 | Sen, 22/05/23, AM | perkenalan, setup Quasar |
-| Sen, 22/05/23, PM | belajar konsep Vue       |
+| Sen, 22/05/23, PM | belajar konsep Vue |
 | Sel, 23/05/23, AM | belajar konsep Quasar, structure + styling clone |
+| Sel, 23/05/23, PM | belajar persistent state storage VueX dan Pinia, table |
 
 ### Identity
 Damianus Clairvoyance\

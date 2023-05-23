@@ -1,8 +1,14 @@
-<template>
-    <li>
-        <p>{{ task.name }}</p>
-        <p>{{ task.dueDate }} @{{ task.dueTime }} at {{ index }}</p>
-    </li>
+<template> 
+    <q-item>
+        <q-item-section>
+            <q-item-label>{{ task.name }}</q-item-label>
+        </q-item-section>
+        <q-item-section side>
+            <q-item-label>{{ task.dueDate }}</q-item-label>
+            <q-item-label>@{{ task.dueTime }}</q-item-label>
+        </q-item-section>
+    </q-item>
+    <q-separator></q-separator>
 </template>
 
 <script>

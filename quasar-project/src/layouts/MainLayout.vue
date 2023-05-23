@@ -94,7 +94,8 @@ export default defineComponent({
 
 <style>
   .margin-button {
-    margin-left: 0.32em;
+    margin-left: 0.24em;
+    margin-right: 0.24em;
   }
 
   .margin-drawer {
