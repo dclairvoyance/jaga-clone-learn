@@ -1,4 +1,5 @@
 import Vue from 'vue'
+import { uid } from 'quasar'
 
 const state = {
     users: {
@@ -30,6 +31,7 @@ const mutations = {
     },
     addUser(state, user) {
         // Vue.set(state.users, user.id, user.user)
+        console.log(user)
         state.users[user.id] = user.user
     }
 }
@@ -39,7 +41,13 @@ const actions = {
         commit('deleteUser', id)
     },
     addUser({ commit }, user) {
-        commit('addUser', user)
+        let userId = uid()
+        user.id = userId
+        let newUser = {
+            id: userId,
+            user: user
+        }
+        commit('addUser', newUser)
     }
 }
 

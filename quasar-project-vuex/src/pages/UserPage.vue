@@ -225,17 +225,17 @@ export default defineComponent({
     },
     submitFormAdd() {
       if (!this.$refs.username.hasError && !this.$refs.name.hasError && !this.$refs.hasError) {
-        this.addThisTask()
+        this.addThisUser()
       }
     },
-    addThisTask() {
-      let userId = uid()
-      this.userToAdd.id = userId
-      let newUser = {
-        id: userId,
-        user: this.userToAdd
-      }
-      this.addUser(newUser)
+    addThisUser() {
+      // let userId = uid()
+      // this.userToAdd.id = userId
+      // let newUser = {
+      //   id: userId,
+      //   user: this.userToAdd
+      // }
+      this.addUser({...this.userToAdd})
     },
     resetFill() {
       this.userToAdd.id = ""
