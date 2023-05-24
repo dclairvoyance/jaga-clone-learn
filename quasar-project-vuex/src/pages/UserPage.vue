@@ -71,7 +71,8 @@
         </template>
         <template v-slot:body-cell-action="action">
           <q-td :props="action">
-            <q-btn flat icon="edit" @click="showDialogDelete(action.row.id)" />
+            <q-btn flat icon="edit" @click="showDialogUpdate(action.row.id)" />
+            <q-btn flat icon="delete" @click="showDialogDelete(action.row.id)" />
           </q-td>
         </template>
         <template v-slot:body-cell-active="active">
@@ -167,6 +168,64 @@
         </q-card>
       </q-dialog>
 
+      <!--dialog update-->
+      <q-dialog v-model="openDialogUpdate" persistent>
+        <q-card style="min-width: 350px; width: 1400px">
+          <q-card-section>
+            <div class="text-h6">Ubah User</div>
+          </q-card-section>
+
+          <form @submit.prevent="submitFormUpdate">
+            <q-card-section class="q-pt-none">
+              <q-input disable bottom-slots v-model="userToEdit.username" label="Username" label-color="grey-8"
+                color="black" ref="usernameEdit">
+                <template v-slot:before>
+                  <q-icon name="contacts" />
+                </template>
+              </q-input>
+              <q-input autofocus bottom-slots v-model="userToEdit.name" label="Nama" label-color="grey-8" color="black" ref="nameEdit"
+                :rules="[val => !!val || 'Name is required']">
+                <template v-slot:before>
+                  <q-icon name="comment" />
+                </template>
+                <template v-slot:append>
+                  <q-icon name="close" @click="userToEdit.name = ''" class="cursor-pointer"
+                    v-if="userToEdit.name" />
+                </template>
+              </q-input>
+              <q-input bottom-slots v-model="userToEdit.email" label="Email" label-color="grey-8" color="black" ref="emailEdit"
+                :rules="[val => !!val || 'Email is required']">
+                <template v-slot:before>
+                  <q-icon name="mail" />
+                </template>
+                <template v-slot:append>
+                  <q-icon name="close" @click="userToEdit.email = ''" class="cursor-pointer"
+                    v-if="userToEdit.email" />
+                </template>
+              </q-input>
+              <q-input bottom-slots label="Instansi" label-color="grey-8" color="black">
+                <template v-slot:before>
+                  <q-icon name="business_center" />
+                </template>
+              </q-input>
+              <q-input bottom-slots v-model="userToEdit.role" label="Role" label-color="grey-8" color="black">
+                <template v-slot:before>
+                  <q-icon name="work" />
+                </template>
+                <template v-slot:hint>
+                  Pilih satu Role atau lebih
+                </template>
+              </q-input>
+            </q-card-section>
+
+            <q-card-actions class="q-pa-md">
+              <q-btn label="Ubah" color="secondary" type="submit" v-close-popup />
+              <q-btn label="Batal" color="grey-8" v-close-popup />
+            </q-card-actions>
+          </form>
+        </q-card>
+      </q-dialog>
+
       <!--button add-->
       <div class="fixed-bottom-right q-pa-lg">
         <q-btn @click="showDialogAdd()" round dense color="secondary" size="20px">
@@ -180,7 +239,6 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import { mapActions, mapGetters } from 'vuex'
-import { uid } from 'quasar'
 
 export default defineComponent({
   data() {
@@ -193,6 +251,15 @@ export default defineComponent({
         active: false,
         id: "", // TODO: auto-increment
         avatar: "https://jaga.id/datachallenge/img/logojaga.png"
+      },
+      userToEdit: {
+        username: "",
+        name: "",
+        email: "",
+        role: "",
+        active: false,
+        id: "",
+        avatar: ""
       }
     }
   },
@@ -200,6 +267,7 @@ export default defineComponent({
     return {
       openDialogDelete: ref(false),
       openDialogAdd: ref(false),
+      openDialogUpdate: ref(false),
       usernameFill: ref(''),
       selectedRow: ref('')
     }
@@ -210,7 +278,7 @@ export default defineComponent({
     }
   },
   methods: {
-    ...mapActions('users', ['deleteUser', 'addUser']),
+    ...mapActions('users', ['deleteUser', 'addUser', 'updateUser']),
     showDialogDelete(id) {
       this.openDialogDelete = true
       this.selectedRow = id
@@ -218,24 +286,41 @@ export default defineComponent({
     showDialogAdd() {
       this.openDialogAdd = true
       this.resetFill()
-      console.log(this.userToAdd)
+    },
+    showDialogUpdate(id) {
+      this.openDialogUpdate = true
+      this.selectedRow = id
+      this.userToEdit = {...this.users[this.selectedRow]}
+      console.log(this.userToEdit)
+      
     },
     deleteThisUser() {
       this.deleteUser(this.selectedRow)
     },
     submitFormAdd() {
-      if (!this.$refs.username.hasError && !this.$refs.name.hasError && !this.$refs.hasError) {
+      this.$refs.username.validate()
+      this.$refs.name.validate()
+      this.$refs.email.validate()
+      if (!this.$refs.username.hasError && !this.$refs.name.hasError && !this.$refs.email.hasError) {
         this.addThisUser()
       }
     },
     addThisUser() {
-      // let userId = uid()
-      // this.userToAdd.id = userId
-      // let newUser = {
-      //   id: userId,
-      //   user: this.userToAdd
-      // }
       this.addUser({...this.userToAdd})
+    },
+    submitFormUpdate() {
+      this.$refs.usernameEdit.validate()
+      this.$refs.nameEdit.validate()
+      this.$refs.emailEdit.validate()
+      if (!this.$refs.usernameEdit.hasError && !this.$refs.nameEdit.hasError && !this.$refs.emailEdit.hasError) {
+        this.updateThisUser()
+      }
+    },
+    updateThisUser() {
+      this.updateUser({
+        id: this.selectedRow,
+        updates: this.userToEdit
+      })
     },
     resetFill() {
       this.userToAdd.id = ""

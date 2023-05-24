@@ -33,6 +33,9 @@ const mutations = {
         // Vue.set(state.users, user.id, user.user)
         console.log(user)
         state.users[user.id] = user.user
+    },
+    updateUser(state, user) {
+        Object.assign(state.users[user.id], user.updates)
     }
 }
 
@@ -48,6 +51,9 @@ const actions = {
             user: user
         }
         commit('addUser', newUser)
+    },
+    updateUser({ commit }, user) {
+        commit('updateUser', user)
     }
 }
 

@@ -486,6 +486,8 @@ computed: {
 #TODO: button round in table
 #TODO: submit when keyup.enter
 
+#TODO-PENTING: no close dialog if empty
+
 # desain document database user collection
 # id: autogenerate, required, sortable (if incremental)
 # avatar: link to firebase store or default avatar
