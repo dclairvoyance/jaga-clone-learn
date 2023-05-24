@@ -485,6 +485,7 @@ computed: {
 #TODO: modularize -> use emit event
 #TODO: button round in table
 #TODO: submit when keyup.enter
+#TODO: ternary in activate/deactivate
 
 #TODO-PENTING: no close dialog if empty
 

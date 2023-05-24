@@ -77,8 +77,8 @@
         </template>
         <template v-slot:body-cell-active="active">
           <q-td :props="active">
-            <q-btn flat icon="close" v-if="active.row.active" />
-            <q-btn flat icon="done" v-if="!active.row.active" />
+            <q-btn flat icon="close" v-if="active.row.active" @click="showDialogActivate(active.row.id)" />
+            <q-btn flat icon="done" v-if="!active.row.active" @click="showDialogActivate(active.row.id)"/>
           </q-td>
         </template>
       </q-table>
@@ -96,7 +96,7 @@
 
           <q-card-section class="q-pt-none">
             <div class="text-p">Tulis kembali username: "TODO: add username"</div>
-            <q-input dense v-model="usernameFill" autofocus @keyup.enter="openDialogDelete = false" />
+            <q-input color="black" dense v-model="usernameFill" autofocus @keyup.enter="openDialogDelete = false" />
           </q-card-section>
 
           <q-card-actions align="right">
@@ -226,6 +226,26 @@
         </q-card>
       </q-dialog>
 
+      <!--dialog activate/deactivate-->
+      <q-dialog v-model="openDialogActivate" persistent>
+        <q-card style="min-width: 350px">
+          <q-card-section>
+            <div class="text-h6">Konfirmasi</div>
+          </q-card-section>
+
+          <q-card-section>
+            <div v-if="!this.userToEdit.activate" class="text-p">User akan diaktivasi. Apakah Anda yakin?</div>
+            <div v-if="this.userToEdit.activate" class="text-p">User akan dideaktivasi. Apakah Anda yakin?</div>
+          </q-card-section>
+
+          <q-card-actions align="right">
+            <q-btn flat label="Batal" v-close-popup />
+            <q-btn color="black" v-if="!this.userToEdit.activate" autofocus label="Aktivasi" v-close-popup @click="activateThisUser()" />
+            <q-btn color="black" v-if="this.userToEdit.activate" autofocus label="Deaktivasi" v-close-popup @click="deactivateThisUser()" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
       <!--button add-->
       <div class="fixed-bottom-right q-pa-lg">
         <q-btn @click="showDialogAdd()" round dense color="secondary" size="20px">
@@ -268,6 +288,7 @@ export default defineComponent({
       openDialogDelete: ref(false),
       openDialogAdd: ref(false),
       openDialogUpdate: ref(false),
+      openDialogActivate: ref(false),
       usernameFill: ref(''),
       selectedRow: ref('')
     }
@@ -291,8 +312,12 @@ export default defineComponent({
       this.openDialogUpdate = true
       this.selectedRow = id
       this.userToEdit = {...this.users[this.selectedRow]}
-      console.log(this.userToEdit)
       
+    },
+    showDialogActivate(id) {
+      this.openDialogActivate = true
+      this.selectedRow = id
+      this.userToEdit = {...this.users[this.selectedRow]}
     },
     deleteThisUser() {
       this.deleteUser(this.selectedRow)
@@ -321,6 +346,16 @@ export default defineComponent({
         id: this.selectedRow,
         updates: this.userToEdit
       })
+    },
+    activateThisUser() {
+      this.userToEdit.active = !this.userToEdit.active
+      this.updateUser({
+        id: this.selectedRow,
+        updates: this.userToEdit
+      })
+    },
+    deactivateThisUser() {
+      this.activateThisUser()
     },
     resetFill() {
       this.userToAdd.id = ""
