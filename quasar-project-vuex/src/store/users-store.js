@@ -8,7 +8,7 @@ const state = {
             username: "username1",
             name: "nama",
             email: "email",
-            role: "role",
+            roles: ["pengguna", "pegawai"],
             active: false,
             id: 'ID1',
         },
@@ -17,7 +17,7 @@ const state = {
         //     username: "username2",
         //     name: "nama",
         //     email: "email",
-        //     role: "role",
+        //     roles: [],
         //     active: true,
         //     id: 'ID2',
         // }

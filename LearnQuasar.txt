@@ -486,6 +486,7 @@ computed: {
 #TODO: button round in table
 #TODO: submit when keyup.enter
 #TODO: ternary in activate/deactivate
+#TODO: search bar
 
 #TODO-PENTING: no close dialog if empty
 

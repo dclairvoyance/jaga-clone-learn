@@ -45,10 +45,11 @@
         },
         {
           label: 'Roles',
-          field: 'role',
-          name: 'role',
+          field: 'roles',
+          name: 'roles',
           required: true,
-          sortable: true
+          sortable: true,
+          align: 'left'
         },
         {
           label: 'Aksi',
@@ -67,6 +68,11 @@
         <template v-slot:body-cell-avatar="avatar">
           <q-td :props="avatar">
             <q-img :src="avatar.row.avatar" spinner-color="white" />
+          </q-td>
+        </template>
+        <template v-slot:body-cell-roles="roles">
+          <q-td :props="roles">
+            <q-badge class="q-mr-xs" v-for="role in roles.row.roles" :key="role" :color="roleOptions[role].color" :label="role" />
           </q-td>
         </template>
         <template v-slot:body-cell-action="action">
@@ -150,14 +156,24 @@
                   <q-icon name="business_center" />
                 </template>
               </q-input>
-              <q-input bottom-slots v-model="userToAdd.role" label="Role" label-color="grey-8" color="black">
+              <q-select
+                bottom-slots
+                v-model="roles"
+                label="Role"
+                label-color="grey-8"
+                color="secondary"
+                multiple
+                :options="Object.keys(roleOptions)"
+                use-chips
+                stack-label
+                :rules="[val => val.length > 0 || 'Pilih satu Role atau lebih']">
                 <template v-slot:before>
                   <q-icon name="work" />
                 </template>
                 <template v-slot:hint>
                   Pilih satu Role atau lebih
                 </template>
-              </q-input>
+              </q-select>
             </q-card-section>
 
             <q-card-actions class="q-pa-md">
@@ -267,7 +283,7 @@ export default defineComponent({
         username: "",
         name: "",
         email: "",
-        role: "",
+        role: [''],
         active: false,
         id: "", // TODO: auto-increment
         avatar: "https://jaga.id/datachallenge/img/logojaga.png"
@@ -276,7 +292,7 @@ export default defineComponent({
         username: "",
         name: "",
         email: "",
-        role: "",
+        role: [''],
         active: false,
         id: "",
         avatar: ""
@@ -290,7 +306,10 @@ export default defineComponent({
       openDialogUpdate: ref(false),
       openDialogActivate: ref(false),
       usernameFill: ref(''),
-      selectedRow: ref('')
+      selectedRow: ref(''),
+      roles: ref([]),
+      roleOptions: {"pengguna": { color: 'purple' },
+                    "pegawai": { color: 'green' } }
     }
   },
   computed: {
@@ -329,8 +348,10 @@ export default defineComponent({
       if (!this.$refs.username.hasError && !this.$refs.name.hasError && !this.$refs.email.hasError) {
         this.addThisUser()
       }
+      this.openDialogAdd = false
     },
     addThisUser() {
+      this.userToAdd.role = {...this.roles}
       this.addUser({...this.userToAdd})
     },
     submitFormUpdate() {
@@ -340,6 +361,7 @@ export default defineComponent({
       if (!this.$refs.usernameEdit.hasError && !this.$refs.nameEdit.hasError && !this.$refs.emailEdit.hasError) {
         this.updateThisUser()
       }
+      this.openDialogAdd = false
     },
     updateThisUser() {
       this.updateUser({
