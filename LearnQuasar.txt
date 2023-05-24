@@ -465,3 +465,32 @@ export default defineComponent({
 # actions -> asynchronous
 # getters -> get data from state
 # namespaced = true -> multiple store module in one app
+
+computed: {
+  users() {
+    return this.$store.getters['users/users']
+  }
+}
+
+computed: {
+  ...mapGetters('users', ['users'])
+}
+# users store -> users getters
+
+# commit -> to fire mutation
+
+#TODO: find mapGetters equivalent to manual user() -> found
+#TODO: placeholder username = email
+#TODO: validasi email
+#TODO: modularize -> use emit event
+#TODO: button round in table
+#TODO: submit when keyup.enter
+
+# desain document database user collection
+# id: autogenerate, required, sortable (if incremental)
+# avatar: link to firebase store or default avatar
+# username: required, sortable
+# name: required, sortable
+# email: required, sortable
+# roles: multi, required, sortable -> TODO:filterable
+# instansi: TODO
