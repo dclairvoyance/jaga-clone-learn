@@ -57,7 +57,7 @@
           align: 'center'
         },
         {
-          label: 'Aktif?',
+          label: 'Aktivasi',
           field: '',
           name: 'active',
           align: 'center'
@@ -161,7 +161,7 @@
             </q-card-section>
 
             <q-card-actions class="q-pa-md">
-              <q-btn label="Tambah" color="secondary" type="submit" v-close-popup />
+              <q-btn label="Tambah" color="secondary" type="submit" />
               <q-btn label="Batal" color="grey-8" v-close-popup />
             </q-card-actions>
           </form>
@@ -219,7 +219,7 @@
             </q-card-section>
 
             <q-card-actions class="q-pa-md">
-              <q-btn label="Ubah" color="secondary" type="submit" v-close-popup />
+              <q-btn label="Ubah" color="secondary" type="submit" />
               <q-btn label="Batal" color="grey-8" v-close-popup />
             </q-card-actions>
           </form>
@@ -234,14 +234,14 @@
           </q-card-section>
 
           <q-card-section>
-            <div v-if="!this.userToEdit.activate" class="text-p">User akan diaktivasi. Apakah Anda yakin?</div>
-            <div v-if="this.userToEdit.activate" class="text-p">User akan dideaktivasi. Apakah Anda yakin?</div>
+            <div v-if="!this.userToEdit.active" class="text-p">User akan diaktivasi. Apakah Anda yakin?</div>
+            <div v-if="this.userToEdit.active" class="text-p">User akan dideaktivasi. Apakah Anda yakin?</div>
           </q-card-section>
 
           <q-card-actions align="right">
             <q-btn flat label="Batal" v-close-popup />
-            <q-btn color="black" v-if="!this.userToEdit.activate" autofocus label="Aktivasi" v-close-popup @click="activateThisUser()" />
-            <q-btn color="black" v-if="this.userToEdit.activate" autofocus label="Deaktivasi" v-close-popup @click="deactivateThisUser()" />
+            <q-btn color="black" v-if="!this.userToEdit.active" autofocus label="Aktivasi" v-close-popup @click="activateThisUser()" />
+            <q-btn color="black" v-if="this.userToEdit.active" autofocus label="Deaktivasi" v-close-popup @click="deactivateThisUser()" />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -353,6 +353,7 @@ export default defineComponent({
         id: this.selectedRow,
         updates: this.userToEdit
       })
+      this.openDialogActivate = false
     },
     deactivateThisUser() {
       this.activateThisUser()
