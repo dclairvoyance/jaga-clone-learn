@@ -10,6 +10,7 @@ const state = {
             email: "email",
             roles: ["pengguna", "pegawai"],
             active: false,
+            gender: "",
             id: 'ID1',
         },
         // 'ID2': {
@@ -19,6 +20,7 @@ const state = {
         //     email: "email",
         //     roles: [],
         //     active: true,
+        //     gender: "",
         //     id: 'ID2',
         // }
     }

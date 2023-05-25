@@ -72,7 +72,8 @@
         </template>
         <template v-slot:body-cell-roles="roles">
           <q-td :props="roles">
-            <q-badge class="q-mr-xs" v-for="role in roles.row.roles" :key="role" :color="roleOptions[role].color" :label="role" />
+            <q-badge class="q-mr-xs" v-for="role in roles.row.roles" :key="role" :color="roleOptions[role].color"
+              :label="role" />
           </q-td>
         </template>
         <template v-slot:body-cell-action="action">
@@ -84,7 +85,7 @@
         <template v-slot:body-cell-active="active">
           <q-td :props="active">
             <q-btn flat icon="close" v-if="active.row.active" @click="showDialogActivate(active.row.id)" />
-            <q-btn flat icon="done" v-if="!active.row.active" @click="showDialogActivate(active.row.id)"/>
+            <q-btn flat icon="done" v-if="!active.row.active" @click="showDialogActivate(active.row.id)" />
           </q-td>
         </template>
       </q-table>
@@ -137,18 +138,16 @@
                   <q-icon name="comment" />
                 </template>
                 <template v-slot:append>
-                  <q-icon name="close" @click="userToAdd.name = ''" class="cursor-pointer"
-                    v-if="userToAdd.name" />
+                  <q-icon name="close" @click="userToAdd.name = ''" class="cursor-pointer" v-if="userToAdd.name" />
                 </template>
               </q-input>
               <q-input bottom-slots v-model="userToAdd.email" label="Email" label-color="grey-8" color="black" ref="email"
-                :rules="[val => !!val || 'Email is required']">
+                :rules="[val => !!val || 'Email is required', isValidEmail]">
                 <template v-slot:before>
                   <q-icon name="mail" />
                 </template>
                 <template v-slot:append>
-                  <q-icon name="close" @click="userToAdd.email = ''" class="cursor-pointer"
-                    v-if="userToAdd.email" />
+                  <q-icon name="close" @click="userToAdd.email = ''" class="cursor-pointer" v-if="userToAdd.email" />
                 </template>
               </q-input>
               <q-input bottom-slots label="Instansi" label-color="grey-8" color="black">
@@ -156,16 +155,8 @@
                   <q-icon name="business_center" />
                 </template>
               </q-input>
-              <q-select
-                bottom-slots
-                v-model="roles"
-                label="Role"
-                label-color="grey-8"
-                color="secondary"
-                multiple
-                :options="Object.keys(roleOptions)"
-                use-chips
-                stack-label
+              <q-select ref="role" bottom-slots v-model="roles" label="Role" label-color="grey-8" color="secondary"
+                multiple :options="Object.keys(roleOptions)" use-chips stack-label
                 :rules="[val => val.length > 0 || 'Pilih satu Role atau lebih']">
                 <template v-slot:before>
                   <q-icon name="work" />
@@ -174,6 +165,13 @@
                   Pilih satu Role atau lebih
                 </template>
               </q-select>
+              <q-checkbox class="q-ml-lg q-mt-sm" v-model="pickGender" size="sm" label="Isi jenis kelamin?" color="grey-8" />
+              <div class="q-ml-xl" v-if="pickGender">
+                <q-radio v-model="gender" size="sm" val="male" label="Male" color="grey-8" />
+                <q-radio v-model="gender" size="sm" val="female" label="Female" color="grey-8" />
+                <q-btn class="q-ml-sm" flat color="secondary" @click="clearGender()">Clear</q-btn>
+              </div>
+
             </q-card-section>
 
             <q-card-actions class="q-pa-md">
@@ -199,24 +197,22 @@
                   <q-icon name="contacts" />
                 </template>
               </q-input>
-              <q-input autofocus bottom-slots v-model="userToEdit.name" label="Nama" label-color="grey-8" color="black" ref="nameEdit"
-                :rules="[val => !!val || 'Name is required']">
+              <q-input autofocus bottom-slots v-model="userToEdit.name" label="Nama" label-color="grey-8" color="black"
+                ref="nameEdit" :rules="[val => !!val || 'Name is required']">
                 <template v-slot:before>
                   <q-icon name="comment" />
                 </template>
                 <template v-slot:append>
-                  <q-icon name="close" @click="userToEdit.name = ''" class="cursor-pointer"
-                    v-if="userToEdit.name" />
+                  <q-icon name="close" @click="userToEdit.name = ''" class="cursor-pointer" v-if="userToEdit.name" />
                 </template>
               </q-input>
-              <q-input bottom-slots v-model="userToEdit.email" label="Email" label-color="grey-8" color="black" ref="emailEdit"
-                :rules="[val => !!val || 'Email is required']">
+              <q-input bottom-slots v-model="userToEdit.email" label="Email" label-color="grey-8" color="black"
+                ref="emailEdit" :rules="[val => !!val || 'Email is required']">
                 <template v-slot:before>
                   <q-icon name="mail" />
                 </template>
                 <template v-slot:append>
-                  <q-icon name="close" @click="userToEdit.email = ''" class="cursor-pointer"
-                    v-if="userToEdit.email" />
+                  <q-icon name="close" @click="userToEdit.email = ''" class="cursor-pointer" v-if="userToEdit.email" />
                 </template>
               </q-input>
               <q-input bottom-slots label="Instansi" label-color="grey-8" color="black">
@@ -224,14 +220,16 @@
                   <q-icon name="business_center" />
                 </template>
               </q-input>
-              <q-input bottom-slots v-model="userToEdit.role" label="Role" label-color="grey-8" color="black">
+              <q-select ref="roleEdit" bottom-slots v-model="roles" label="Role" label-color="grey-8" color="secondary"
+                multiple :options="Object.keys(roleOptions)" use-chips stack-label
+                :rules="[val => val.length > 0 || 'Pilih satu Role atau lebih']">
                 <template v-slot:before>
                   <q-icon name="work" />
                 </template>
                 <template v-slot:hint>
                   Pilih satu Role atau lebih
                 </template>
-              </q-input>
+              </q-select>
             </q-card-section>
 
             <q-card-actions class="q-pa-md">
@@ -256,8 +254,10 @@
 
           <q-card-actions align="right">
             <q-btn flat label="Batal" v-close-popup />
-            <q-btn color="black" v-if="!this.userToEdit.active" autofocus label="Aktivasi" v-close-popup @click="activateThisUser()" />
-            <q-btn color="black" v-if="this.userToEdit.active" autofocus label="Deaktivasi" v-close-popup @click="deactivateThisUser()" />
+            <q-btn color="black" v-if="!this.userToEdit.active" autofocus label="Aktivasi" v-close-popup
+              @click="activateThisUser()" />
+            <q-btn color="black" v-if="this.userToEdit.active" autofocus label="Deaktivasi" v-close-popup
+              @click="deactivateThisUser()" />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -286,7 +286,8 @@ export default defineComponent({
         role: [''],
         active: false,
         id: "", // TODO: auto-increment
-        avatar: "https://jaga.id/datachallenge/img/logojaga.png"
+        avatar: "https://jaga.id/datachallenge/img/logojaga.png",
+        gender: ""
       },
       userToEdit: {
         username: "",
@@ -295,7 +296,8 @@ export default defineComponent({
         role: [''],
         active: false,
         id: "",
-        avatar: ""
+        avatar: "",
+        gender: ""
       }
     }
   },
@@ -308,8 +310,12 @@ export default defineComponent({
       usernameFill: ref(''),
       selectedRow: ref(''),
       roles: ref([]),
-      roleOptions: {"pengguna": { color: 'purple' },
-                    "pegawai": { color: 'green' } }
+      roleOptions: {
+        "pengguna": { color: 'purple' },
+        "pegawai": { color: 'green' }
+      },
+      pickGender: ref(false),
+      gender: ref('')
     }
   },
   computed: {
@@ -330,13 +336,13 @@ export default defineComponent({
     showDialogUpdate(id) {
       this.openDialogUpdate = true
       this.selectedRow = id
-      this.userToEdit = {...this.users[this.selectedRow]}
-      
+      this.userToEdit = { ...this.users[this.selectedRow] }
+
     },
     showDialogActivate(id) {
       this.openDialogActivate = true
       this.selectedRow = id
-      this.userToEdit = {...this.users[this.selectedRow]}
+      this.userToEdit = { ...this.users[this.selectedRow] }
     },
     deleteThisUser() {
       this.deleteUser(this.selectedRow)
@@ -345,23 +351,28 @@ export default defineComponent({
       this.$refs.username.validate()
       this.$refs.name.validate()
       this.$refs.email.validate()
-      if (!this.$refs.username.hasError && !this.$refs.name.hasError && !this.$refs.email.hasError) {
+      this.$refs.role.validate()
+      if (!this.$refs.username.hasError && !this.$refs.name.hasError && !this.$refs.email.hasError && this.roles.length > 0) {
         this.addThisUser()
+        this.openDialogAdd = false
       }
-      this.openDialogAdd = false
     },
     addThisUser() {
-      this.userToAdd.role = {...this.roles}
-      this.addUser({...this.userToAdd})
+      if (this.pickGender) {
+        this.userToAdd.gender = this.gender
+      }
+      this.userToAdd.role = { ...this.roles }
+      this.addUser({ ...this.userToAdd })
     },
     submitFormUpdate() {
       this.$refs.usernameEdit.validate()
       this.$refs.nameEdit.validate()
       this.$refs.emailEdit.validate()
-      if (!this.$refs.usernameEdit.hasError && !this.$refs.nameEdit.hasError && !this.$refs.emailEdit.hasError) {
+      this.$refs.roleEdit.validate()
+      if (!this.$refs.usernameEdit.hasError && !this.$refs.nameEdit.hasError && !this.$refs.emailEdit.hasError && this.roles.length > 0) {
         this.updateThisUser()
+        this.openDialogUpdate = false
       }
-      this.openDialogAdd = false
     },
     updateThisUser() {
       this.updateUser({
@@ -381,12 +392,22 @@ export default defineComponent({
       this.activateThisUser()
     },
     resetFill() {
+      this.pickGender = false
+      this.roles = []
       this.userToAdd.id = ""
       this.userToAdd.username = ""
       this.userToAdd.name = ""
       this.userToAdd.email = ""
       this.userToAdd.role = ""
-    }
+    },
+    clearGender() {
+      this.userToAdd.gender = ''
+      this.userToEdit.gender = ''
+    },
+    isValidEmail () {
+      const emailPattern = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/
+      return emailPattern.test(this.userToAdd.email) || 'Email invalid'
+  },
   }
 })
 </script>
