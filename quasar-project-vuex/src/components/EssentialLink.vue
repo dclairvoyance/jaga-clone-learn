@@ -1,14 +1,6 @@
 <template>
-  <q-item
-    clickable
-    :to="link"
-    exact
-    active-class="bg-grey-7 shape-active"
-  >
-    <q-item-section
-      v-if="icon"
-      avatar
-    >
+  <q-item clickable :to="link" exact active-class="bg-grey-7 shape-active">
+    <q-item-section v-if="icon" avatar>
       <q-icon :name="icon" />
     </q-item-section>
 
@@ -49,7 +41,7 @@ export default defineComponent({
 </script>
 
 <style>
-  .shape-active {
-    border-radius: 32px 0 0 32px;
-  }
+.shape-active {
+  border-radius: 32px 0 0 32px;
+}
 </style>

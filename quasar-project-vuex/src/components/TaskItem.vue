@@ -1,4 +1,4 @@
-<template> 
+<template>
     <q-item>
         <q-item-section>
             <q-item-label>{{ task.name }}</q-item-label>
@@ -12,13 +12,12 @@
 </template>
 
 <script>
-    import { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 
-    export default defineComponent({
-        name: 'TaskItem',
-        props: ['task', 'index']
-    })
+export default defineComponent({
+    name: 'TaskItem',
+    props: ['task', 'index']
+})
 </script>
 
-<style>
-</style>
+<style></style>

@@ -1,5 +1,5 @@
 <template>
-  <q-page class="page-color q-px-lg q-py-md">
+  <q-page class="q-px-lg q-py-md">
     <q-page class="item-color shadow-6">
       <div class="row text-h1 q-px-lg q-py-lg text-weight-bold page-header">
         Users Management
@@ -141,8 +141,8 @@
                   <q-icon name="close" @click="userToAdd.name = ''" class="cursor-pointer" v-if="userToAdd.name" />
                 </template>
               </q-input>
-              <q-input bottom-slots v-model="userToAdd.email" label="Email" label-color="grey-8" color="black" ref="email" lazy-rules
-                :rules="[val => !!val || 'Email is required', isValidEmail]">
+              <q-input bottom-slots v-model="userToAdd.email" label="Email" label-color="grey-8" color="black" ref="email"
+                lazy-rules :rules="[val => !!val || 'Email is required', isValidEmail]">
                 <template v-slot:before>
                   <q-icon name="mail" />
                 </template>
@@ -165,7 +165,8 @@
                   Pilih satu Role atau lebih
                 </template>
               </q-select>
-              <q-checkbox class="q-ml-lg q-mt-sm" v-model="pickGender" size="sm" label="Isi jenis kelamin?" color="grey-8" />
+              <q-checkbox class="q-ml-lg q-mt-sm" v-model="pickGender" size="sm" label="Isi jenis kelamin?"
+                color="grey-8" />
               <div class="q-ml-xl" v-if="pickGender">
                 <q-radio v-model="gender" size="sm" val="male" label="Male" color="grey-8" />
                 <q-radio v-model="gender" size="sm" val="female" label="Female" color="grey-8" />
@@ -205,8 +206,8 @@
                   <q-icon name="close" @click="userToEdit.name = ''" class="cursor-pointer" v-if="userToEdit.name" />
                 </template>
               </q-input>
-              <q-input bottom-slots v-model="userToEdit.email" label="Email" label-color="grey-8" color="black" ref="emailEdit" lazy-rules
-                :rules="[val => !!val || 'Email is required', isValidEmail]">
+              <q-input bottom-slots v-model="userToEdit.email" label="Email" label-color="grey-8" color="black"
+                ref="emailEdit" lazy-rules :rules="[val => !!val || 'Email is required', isValidEmail]">
                 <template v-slot:before>
                   <q-icon name="mail" />
                 </template>
@@ -229,7 +230,8 @@
                   Pilih satu Role atau lebih
                 </template>
               </q-select>
-              <q-checkbox class="q-ml-lg q-mt-sm" v-model="pickGender" size="sm" label="Isi jenis kelamin?" color="grey-8" />
+              <q-checkbox class="q-ml-lg q-mt-sm" v-model="pickGender" size="sm" label="Isi jenis kelamin?"
+                color="grey-8" />
               <div class="q-ml-xl" v-if="pickGender">
                 <q-radio v-model="gender" size="sm" val="male" label="Male" color="grey-8" />
                 <q-radio v-model="gender" size="sm" val="female" label="Female" color="grey-8" />
@@ -380,7 +382,7 @@ export default defineComponent({
         this.updateThisUser()
         this.openDialogUpdate = false
       }
-    },  
+    },
     updateThisUser() {
       if (this.pickGender) {
         this.userToEdit.gender = this.gender
@@ -419,10 +421,10 @@ export default defineComponent({
       this.userToAdd.gender = ''
       this.userToEdit.gender = ''
     },
-    isValidEmail () {
+    isValidEmail() {
       const emailPattern = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/
       return emailPattern.test(this.userToAdd.email) || 'Email invalid'
-  },
+    },
   }
 })
 </script>

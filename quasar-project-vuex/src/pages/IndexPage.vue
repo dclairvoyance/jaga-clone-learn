@@ -1,10 +1,7 @@
 <template>
   <q-page class="page-color q-px-lg q-py-md">
     <q-list class="item-color shadow-6">
-      <task
-        v-for="(task) in tasks"
-        :key="task.id"
-        :task="task"></task>
+      <task v-for="(task) in tasks" :key="task.id" :task="task"></task>
     </q-list>
   </q-page>
 </template>
@@ -13,7 +10,7 @@
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  data () {
+  data() {
     return {
       tasks: [
         {
@@ -110,7 +107,7 @@ export default defineComponent({
 </script>
 
 <style>
-    .item-color {
-        background-color: white;
-    }
+.item-color {
+  background-color: white;
+}
 </style>
