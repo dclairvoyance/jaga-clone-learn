@@ -171,7 +171,6 @@
                 <q-radio v-model="gender" size="sm" val="female" label="Female" color="grey-8" />
                 <q-btn class="q-ml-sm" flat color="secondary" @click="clearGender()">Clear</q-btn>
               </div>
-
             </q-card-section>
 
             <q-card-actions class="q-pa-md">
@@ -230,6 +229,12 @@
                   Pilih satu Role atau lebih
                 </template>
               </q-select>
+              <q-checkbox class="q-ml-lg q-mt-sm" v-model="pickGender" size="sm" label="Isi jenis kelamin?" color="grey-8" />
+              <div class="q-ml-xl" v-if="pickGender">
+                <q-radio v-model="gender" size="sm" val="male" label="Male" color="grey-8" />
+                <q-radio v-model="gender" size="sm" val="female" label="Female" color="grey-8" />
+                <q-btn class="q-ml-sm" flat color="secondary" @click="clearGender()">Clear</q-btn>
+              </div>
             </q-card-section>
 
             <q-card-actions class="q-pa-md">
@@ -337,7 +342,9 @@ export default defineComponent({
       this.openDialogUpdate = true
       this.selectedRow = id
       this.userToEdit = { ...this.users[this.selectedRow] }
-
+      this.roles = Object.values(this.userToEdit.roles)
+      this.pickGender = this.userToEdit.gender == "male" || this.userToEdit.gender == "female"
+      this.gender = this.userToEdit.gender
     },
     showDialogActivate(id) {
       this.openDialogActivate = true
@@ -373,8 +380,14 @@ export default defineComponent({
         this.updateThisUser()
         this.openDialogUpdate = false
       }
-    },
+    },  
     updateThisUser() {
+      if (this.pickGender) {
+        this.userToEdit.gender = this.gender
+      }
+      else {
+        this.userToEdit.gender = ''
+      }
       this.userToEdit.roles = { ...this.roles }
       this.updateUser({
         id: this.selectedRow,
@@ -394,6 +407,7 @@ export default defineComponent({
     },
     resetFill() {
       this.pickGender = false
+      this.gender = ""
       this.roles = []
       this.userToAdd.id = ""
       this.userToAdd.username = ""
