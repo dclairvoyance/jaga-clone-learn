@@ -64,32 +64,35 @@
           },
         ]">
         </q-table>
+        {{ data }}
       </q-page>
     </q-page>
   </template>
     
   <script>
   import { defineComponent, ref } from 'vue'
+  import { api } from 'boot/axios'
+  import { useQuasar } from 'quasar'
   
   export default defineComponent({
-    data() {
-      return {
-        companyToAdd: {
-          "id": null,
-          "nama": "",
-          "alamat": null,
-          "jenis": "",
-          "kode_provinsi": "",
-          "provinsi": "",
-          "kode_kab_kota": "",
-          "kab_kota": "",
-        }
-      }
-    },
-    setup() {
-      return {
-        openDialogDelete: ref(false),
-      }
+    setup () {
+        const $q = useQuasar()
+        const data = ref(null)
+
+        console.log("go")
+        api.get('/v5/perusahaan')
+            .then((response) => {
+                data.value = response.data
+            })
+            .catch(() => {
+                $q.notify({
+                    color: 'negative',
+                    position: 'top',
+                    message: 'Loading failed',
+                    icon: 'report_problem'
+                })
+            })
+        return { data }
     },
     computed: {
       companies() {

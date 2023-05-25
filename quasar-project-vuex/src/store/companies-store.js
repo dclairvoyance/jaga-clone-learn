@@ -52,7 +52,6 @@ const actions = {
 
 const getters = {
     companies: (state) => {
-        console.log("tes")
         return state.companies
     }
 }

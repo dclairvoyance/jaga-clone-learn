@@ -3,16 +3,16 @@ import { uid } from 'quasar'
 
 const state = {
     users: {
-        'ID1': {
-            avatar: "https://jaga.id/datachallenge/img/logojaga.png",
-            username: "username1",
-            name: "nama",
-            email: "email",
-            roles: ["pengguna", "pegawai"],
-            active: false,
-            gender: "",
-            id: 'ID1',
-        },
+        // 'ID1': {
+        //     avatar: "https://jaga.id/datachallenge/img/logojaga.png",
+        //     username: "username1",
+        //     name: "nama",
+        //     email: "email",
+        //     roles: ["pengguna", "pegawai"],
+        //     active: false,
+        //     gender: "",
+        //     id: 'ID1',
+        // },
         // 'ID2': {
         //     avatar: "https://jaga.id/datachallenge/img/logojaga.png",
         //     username: "username2",
