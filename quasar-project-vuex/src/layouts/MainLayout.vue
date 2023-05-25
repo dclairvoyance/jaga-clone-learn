@@ -68,6 +68,12 @@ const linksList = [
     caption: 'User, Role, dan Akses',
     icon: 'person',
     link: '/users'
+  },
+  {
+    title: 'Companies',
+    caption: 'Perusahaan',
+    icon: 'store',
+    link: '/companies'
   }
 ]
 

@@ -141,7 +141,7 @@
                   <q-icon name="close" @click="userToAdd.name = ''" class="cursor-pointer" v-if="userToAdd.name" />
                 </template>
               </q-input>
-              <q-input bottom-slots v-model="userToAdd.email" label="Email" label-color="grey-8" color="black" ref="email"
+              <q-input bottom-slots v-model="userToAdd.email" label="Email" label-color="grey-8" color="black" ref="email" lazy-rules
                 :rules="[val => !!val || 'Email is required', isValidEmail]">
                 <template v-slot:before>
                   <q-icon name="mail" />
@@ -205,8 +205,8 @@
                   <q-icon name="close" @click="userToEdit.name = ''" class="cursor-pointer" v-if="userToEdit.name" />
                 </template>
               </q-input>
-              <q-input bottom-slots v-model="userToEdit.email" label="Email" label-color="grey-8" color="black"
-                ref="emailEdit" :rules="[val => !!val || 'Email is required']">
+              <q-input bottom-slots v-model="userToEdit.email" label="Email" label-color="grey-8" color="black" ref="email" lazy-rules
+                :rules="[val => !!val || 'Email is required', isValidEmail]">
                 <template v-slot:before>
                   <q-icon name="mail" />
                 </template>

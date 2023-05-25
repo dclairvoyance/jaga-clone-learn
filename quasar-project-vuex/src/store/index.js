@@ -2,6 +2,7 @@ import { store } from 'quasar/wrappers'
 import { createStore } from 'vuex'
 
 import users from './users-store'
+import companies from './companies-store'
 
 /*
  * If not building with SSR mode, you can
@@ -15,7 +16,8 @@ import users from './users-store'
 export default store(function (/* { ssrContext } */) {
   const Store = createStore({
     modules: {
-      users
+      users,
+      companies
     },
 
     // enable strict mode (adds overhead!)
