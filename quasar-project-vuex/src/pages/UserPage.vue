@@ -283,7 +283,7 @@ export default defineComponent({
         username: "",
         name: "",
         email: "",
-        role: [''],
+        roles: [],
         active: false,
         id: "", // TODO: auto-increment
         avatar: "https://jaga.id/datachallenge/img/logojaga.png",
@@ -293,7 +293,7 @@ export default defineComponent({
         username: "",
         name: "",
         email: "",
-        role: [''],
+        roles: [],
         active: false,
         id: "",
         avatar: "",
@@ -361,7 +361,7 @@ export default defineComponent({
       if (this.pickGender) {
         this.userToAdd.gender = this.gender
       }
-      this.userToAdd.role = { ...this.roles }
+      this.userToAdd.roles = { ...this.roles }
       this.addUser({ ...this.userToAdd })
     },
     submitFormUpdate() {
@@ -375,6 +375,7 @@ export default defineComponent({
       }
     },
     updateThisUser() {
+      this.userToEdit.roles = { ...this.roles }
       this.updateUser({
         id: this.selectedRow,
         updates: this.userToEdit
@@ -398,7 +399,7 @@ export default defineComponent({
       this.userToAdd.username = ""
       this.userToAdd.name = ""
       this.userToAdd.email = ""
-      this.userToAdd.role = ""
+      this.userToAdd.roles = ""
     },
     clearGender() {
       this.userToAdd.gender = ''
