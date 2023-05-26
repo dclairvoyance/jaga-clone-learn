@@ -11,7 +11,7 @@
                         <q-form class="q-px-sm">
                             <q-input square clearable v-model="username" type="username" label="Username" color="black">
                                 <template v-slot:prepend>
-                                    <q-icon name="username" />
+                                    <q-icon name="email" />
                                 </template>
                             </q-input>
                             <q-input square clearable v-model="password" type="password" label="Password" color="black">
@@ -58,7 +58,6 @@ export default defineComponent({
         ...mapActions('user', ['login']),
         submitLogin() {
             this.login({username: this.username, password: this.password})
-            // route
         }
     }
 })

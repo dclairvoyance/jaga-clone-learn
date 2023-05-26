@@ -317,10 +317,10 @@ export default defineComponent({
       usernameFill: ref(''),
       selectedRow: ref(''),
       roles: ref([]),
-      roleOptions: {
+      roleOptions: ref({
         "pengguna": { color: 'purple' },
         "pegawai": { color: 'green' }
-      },
+      }),
       pickGender: ref(false),
       gender: ref('')
     }

@@ -5,7 +5,7 @@
                 Companies Management
             </div>
             <q-separator />
-            <q-table class="q-ma-lg" bordered row-key="id" :rows="companies" :columns="[
+            <q-table class="q-ma-lg" bordered row-key="id" v-model:pagination="pagination" @request="onRequest" :rows="companies.result" :columns="[
                 {
                     label: 'ID',
                     name: 'id',
@@ -62,7 +62,26 @@
                     sortable: true,
                     align: 'left'
                 },
+                {
+                    label: 'Aksi',
+                    field: '',
+                    name: 'action',
+                    align: 'center'
+                },
             ]">
+                <template v-slot:top-right>
+                    <q-input borderless dense debounce="300" placeholder="Search">
+                    <template v-slot:append>
+                        <q-icon name="search" />
+                    </template>
+                    </q-input>
+                </template>
+                <template v-slot:body-cell-action="action">
+                    <q-td :props="action">
+                        <q-btn flat icon="edit" @click="showDialogUpdate(action.row.id)" />
+                        <q-btn flat icon="delete" @click="showDialogDelete(action.row.id)" />
+                    </q-td>
+                </template>
             </q-table>
         </q-page>
     </q-page>
@@ -70,22 +89,55 @@
     
 <script>
 import { defineComponent, onMounted, ref } from 'vue'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default defineComponent({
-    setup () {
+    setup() {
+        const pagination = ref({
+            page: 1,
+            rowsPerPage: 5,
+            rowsNumber: 5
+        })
 
+        const params = ref({
+            keyword: "",
+            kode_provinsi: null,
+            kode_kab_kota: null,
+            limit: pagination.value.rowsNumber,
+            offset: 0
+        })
+
+        return {
+            params,
+            pagination
+        }
     },
     computed: {
-        companies() {
-            return this.$store.getters['companies/companies']
-        }
+        ...mapGetters('companies', ['companies'])
     },
     methods: {
         ...mapActions('companies', ['fetchCompanies']),
+        onRequest (props) {
+            const { page, rowsPerPage } = props.pagination
+
+            // get all rows if "All" (0) is selected
+            this.params.limit = rowsPerPage === 0 ? this.pagination.rowsNumber : rowsPerPage
+
+            // calculate starting row of data
+            this.params.offset = (page - 1) * rowsPerPage
+
+            // fetch data from "server"
+            this.fetchCompanies(this.params)
+
+            // update local pagination object
+            this.pagination.rowsPerPage = rowsPerPage
+            this.pagination.page = page
+        }
     },
     mounted() {
-        this.fetchCompanies()
+        this.fetchCompanies(this.params).then((res) => {
+            this.pagination.rowsNumber = this.companies.total_record
+        })
         // this.$store.dispatch("fetchCompanies")
     }
 })

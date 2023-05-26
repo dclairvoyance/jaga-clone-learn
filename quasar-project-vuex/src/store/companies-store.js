@@ -25,7 +25,6 @@ const mutations = {
         delete state.companies[id]
     },
     addCompany(state, company) {
-        console.log(company)
         state.companies[company.id] = company.company
     },
     updateCompany(state, company) {
@@ -52,10 +51,17 @@ const actions = {
     updateCompany({ commit }, company) {
         commit('updateCompany', company)
     },
-    async fetchCompanies({ commit }) {
+    async fetchCompanies({ commit }, params) {
+        console.log("request with limit", params.limit, "and offset", params.offset)
         try {
-            const res = await api.get('/v5/perusahaan')
-            commit ('fetchCompanies', res.data.data.result)
+            const res = await api.get('/v5/perusahaan', { params: {
+                keyword: params.keyword,
+                kode_provinsi: params.kode_provinsi,
+                kode_kab_kota: params.kode_kab_kota,
+                limit: params.limit,
+                offset: params.offset
+            }})
+            commit ('fetchCompanies', res.data.data)
         } catch (error) {
             console.log(error)
         }
