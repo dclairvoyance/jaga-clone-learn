@@ -6,12 +6,12 @@
                     <q-img class="" :src="'https://jaga.id/datachallenge/img/logojaga.png'" spinner-color="white"
                         style="max-height: 64px; width: 128px" />
                 </q-card-section>
-                <q-card-section class="q-ma-none q-pa-none items-center text-center justify-center">
+                <form @submit.prevent="submitLogin">
                     <q-card-section>
                         <q-form class="q-px-sm">
-                            <q-input square clearable v-model="email" type="email" label="Email" color="black">
+                            <q-input square clearable v-model="username" type="username" label="Username" color="black">
                                 <template v-slot:prepend>
-                                    <q-icon name="email" />
+                                    <q-icon name="username" />
                                 </template>
                             </q-input>
                             <q-input square clearable v-model="password" type="password" label="Password" color="black">
@@ -22,26 +22,46 @@
                         </q-form>
                     </q-card-section>
                     <q-card-actions class="q-px-lg">
-                        <q-btn unelevated size="lg" color="secondary" class="full-width text-white" label="Log In" />
+                        <q-btn type="submit" unelevated size="lg" color="secondary" class="full-width text-white" label="Log In" />
                     </q-card-actions>
                     <q-card-section class="text-center">
-                        <p class="text-grey-6">Forgot your password?</p>
+                        <p class="text-grey-6">Don't have an account? Register</p>
                     </q-card-section>
-                </q-card-section>
+                </form>
             </q-card>
         </div>
     </q-page>
 </template>
   
 <script>
-export default {
+import { defineComponent } from 'vue'
+import { mapActions } from 'vuex'
+
+export default defineComponent({
     data() {
         return {
-            email: '',
+            username: '',
             password: ''
         }
+    },
+    computed: {
+        isLoggedIn() {
+            return this.$store.getters['user/user'].loggedIn
+        }
+    },
+    created() {
+        if (this.isLoggedIn) {
+            this.$router.push('/profile')
+        }
+    },
+    methods: {
+        ...mapActions('user', ['login']),
+        submitLogin() {
+            this.login({username: this.username, password: this.password})
+            // route
+        }
     }
-}
+})
 </script>
   
 <style>
