@@ -17,6 +17,12 @@ const state = {
         //     "updated_at": null,
         //     "deleted_at": null
         // }
+    ],
+    provinces: [
+
+    ],
+    cities: [
+
     ]
 }
 
@@ -32,6 +38,12 @@ const mutations = {
     },
     fetchCompanies(state, companies) {
         state.companies = companies
+    },
+    fetchProvinces(state, provinces) {
+        state.provinces = provinces
+    },
+    fetchCities(state, cities) {
+        state.cities = cities
     }
 }
 
@@ -65,12 +77,43 @@ const actions = {
         } catch (error) {
             console.log(error)
         }
+    },
+    async fetchProvinces({ commit }, params) {
+        try {
+            const res = await api.get('/v5/bansos/provinsi_list', { params: {
+                keyword: params.keyword,
+                limit: params.limit,
+                offset: params.offset
+            }})
+            commit ('fetchProvinces', res.data.data.result)
+        } catch (error) {
+            console.log(error)
+        }
+    },
+    async fetchCities({ commit }, params) {
+        try {
+            const res = await api.get('/v5/bansos/pemda_list', { params: {
+                id_provinsi: params.id_provinsi,
+                keyword: params.keyword,
+                limit: params.limit,
+                offset: params.offset
+            }})
+            commit ('fetchCities', res.data.data)
+        } catch (error) {
+            console.log(error)
+        }
     }
 }
 
 const getters = {
     companies: (state) => {
         return state.companies
+    },
+    provinces: (state) => {
+        return state.provinces
+    },
+    cities: (state) => {
+        return state.cities
     }
 }
 

@@ -28,7 +28,7 @@ const actions = {
             if (res.data.success) {
                 localStorage.setItem('user', JSON.stringify(res.data.data.token))
                 commit('login', res.data.data.token)
-                this.$router.push('/profile')
+                this.$router.push('/')
             } else {
                 console.log(res.data.message)
             }

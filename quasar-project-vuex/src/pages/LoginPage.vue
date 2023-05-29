@@ -51,7 +51,7 @@ export default defineComponent({
     },
     created() {
         if (this.isLoggedIn) {
-            this.$router.push('/profile')
+            this.$router.push('/')
         }
     },
     methods: {
