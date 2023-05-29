@@ -98,7 +98,7 @@ const actions = {
                 limit: params.limit,
                 offset: params.offset
             }})
-            commit ('fetchCities', res.data.data)
+            commit ('fetchCities', res.data.data.result)
         } catch (error) {
             console.log(error)
         }

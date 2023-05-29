@@ -109,7 +109,8 @@
                                 v-model="companyToAdd.province" label="Kode Provinsi" label-color="grey-8" color="secondary"
                                 :options="provincePick" use-chips stack-label
                                 :rules="[val => val.length > 0 || 'Pilih satu provinsi']"
-                                @filter="filterProvince" input-debounce="0">
+                                @filter="filterProvince" input-debounce="0"
+                                @update:model-value="refetchCities()">
                                 <template v-slot:before>
                                     <q-icon name="house" />
                                 </template>
@@ -117,16 +118,18 @@
                                     Pilih satu provinsi
                                 </template>
                             </q-select>
-                            <q-input bottom-slots v-model="companyToAdd.city" label="Kode Kab/Kota" label-color="grey-8"
-                                color="black" ref="city" lazy-rules :rules="[val => !!val || 'Kode Kab/Kota is required']">
+                            <q-select ref="province" use-input fill-input hide-selected bottom-slots
+                                v-model="companyToAdd.city" label="Kode Kota/Kabupaten" label-color="grey-8" color="secondary"
+                                :options="cityPick" use-chips stack-label
+                                :rules="[val => val.length > 0 || 'Pilih satu kota/kabupaten']"
+                                @filter="filterCity" input-debounce="0">
                                 <template v-slot:before>
                                     <q-icon name="home" />
                                 </template>
-                                <template v-slot:append>
-                                    <q-icon name="close" @click="companyToAdd.city = ''" class="cursor-pointer"
-                                        v-if="companyToAdd.city" />
+                                <template v-slot:hint>
+                                    Pilih satu kota/kabupaten
                                 </template>
-                            </q-input>
+                            </q-select>
                             <q-input bottom-slots v-model="companyToAdd.type" label="Jenis" label-color="grey-8"
                                 color="black" ref="type" lazy-rules :rules="[val => !!val || 'Jenis is required']">
                                 <template v-slot:before>
@@ -218,8 +221,8 @@ export default defineComponent({
             openDialogAdd: ref(false),
             provinceOptions: ref([]),
             provincePick: ref([]),
-            cities: ref(""),
-            citiesOptions: ref([])
+            cityOptions: ref([]),
+            cityPick: ref([])
         }
     },
     computed: {
@@ -250,6 +253,13 @@ export default defineComponent({
             update(() => {
                 const search = val.toLowerCase()
                 this.provincePick = this.provinceOptions.filter(v => v.toLowerCase().indexOf(search) > -1)
+                // update here
+            })
+        },
+        filterCity(val, update, abort) {
+            update(() => {
+                const search = val.toLowerCase()
+                this.cityPick = this.cityOptions.filter(v => v.toLowerCase().indexOf(search) > -1)
             })
         },
         showDialogAdd() {
@@ -263,6 +273,15 @@ export default defineComponent({
             this.companyToAdd.type = ""
             this.companyToAdd.address = ""
         },
+        refetchCities() {
+            this.companyToAdd.city = ""
+            const index = this.provinces.findIndex(a => a.nama_provinsi === this.companyToAdd.province)
+            this.paramsCities.id_provinsi = this.provinces[index].id_provinsi
+            this.fetchCities(this.paramsCities).then((res) => {
+                this.cityOptions = this.cities.map(a => a.nama)
+                this.cityPick = this.cityOptions
+            })
+        },
     },
     mounted() {
         this.fetchCompanies(this.paramsCompanies).then((res) => {
@@ -273,7 +292,7 @@ export default defineComponent({
             this.provincePick = this.provinceOptions
         })
         // this.$store.dispatch("fetchCompanies")
-    }
+    },
 })
 </script>
     
