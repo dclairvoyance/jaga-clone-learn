@@ -23,6 +23,9 @@ const state = {
     ],
     cities: [
 
+    ],
+    types: [
+
     ]
 }
 
@@ -44,6 +47,9 @@ const mutations = {
     },
     fetchCities(state, cities) {
         state.cities = cities
+    },
+    fetchTypes(state, types) {
+        state.types = types
     }
 }
 
@@ -64,7 +70,7 @@ const actions = {
         commit('updateCompany', company)
     },
     async fetchCompanies({ commit }, params) {
-        console.log("request with limit", params.limit, "and offset", params.offset)
+        // console.log("request with limit", params.limit, "and offset", params.offset)
         try {
             const res = await api.get('/v5/perusahaan', { params: {
                 keyword: params.keyword,
@@ -102,6 +108,14 @@ const actions = {
         } catch (error) {
             console.log(error)
         }
+    },
+    async fetchTypes({ commit }) {
+        try {
+            const res = await api.get('/v5/perusahaan/jenis')
+            commit ('fetchTypes', res.data.data)
+        } catch (error) {
+            console.log(error)
+        }
     }
 }
 
@@ -114,6 +128,9 @@ const getters = {
     },
     cities: (state) => {
         return state.cities
+    },
+    types: (state) => {
+        return state.types
     }
 }
 

@@ -108,9 +108,8 @@
                             <q-select ref="province" use-input fill-input hide-selected bottom-slots
                                 v-model="companyToAdd.province" label="Kode Provinsi" label-color="grey-8" color="secondary"
                                 :options="provincePick" use-chips stack-label
-                                :rules="[val => val.length > 0 || 'Pilih satu provinsi']"
-                                @filter="filterProvince" input-debounce="0"
-                                @update:model-value="refetchCities()">
+                                :rules="[val => val.length > 0 || 'Pilih satu provinsi']" @filter="filterProvince"
+                                input-debounce="0" @update:model-value="refetchCities()">
                                 <template v-slot:before>
                                     <q-icon name="house" />
                                 </template>
@@ -118,10 +117,9 @@
                                     Pilih satu provinsi
                                 </template>
                             </q-select>
-                            <q-select ref="province" use-input fill-input hide-selected bottom-slots
-                                v-model="companyToAdd.city" label="Kode Kota/Kabupaten" label-color="grey-8" color="secondary"
-                                :options="cityPick" use-chips stack-label
-                                :rules="[val => val.length > 0 || 'Pilih satu kota/kabupaten']"
+                            <q-select ref="city" use-input fill-input hide-selected bottom-slots v-model="companyToAdd.city"
+                                label="Kode Kota/Kabupaten" label-color="grey-8" color="secondary" :options="cityPick"
+                                use-chips stack-label :rules="[val => val.length > 0 || 'Pilih satu kota/kabupaten']"
                                 @filter="filterCity" input-debounce="0">
                                 <template v-slot:before>
                                     <q-icon name="home" />
@@ -130,16 +128,16 @@
                                     Pilih satu kota/kabupaten
                                 </template>
                             </q-select>
-                            <q-input bottom-slots v-model="companyToAdd.type" label="Jenis" label-color="grey-8"
-                                color="black" ref="type" lazy-rules :rules="[val => !!val || 'Jenis is required']">
+                            <q-select ref="type" bottom-slots v-model="companyToAdd.type" label="Jenis" label-color="grey-8"
+                                color="secondary" :options="typeOptions"
+                                :rules="[val => val.length > 0 || 'Pilih satu jenis']">
                                 <template v-slot:before>
                                     <q-icon name="checklist" />
                                 </template>
-                                <template v-slot:append>
-                                    <q-icon name="close" @click="companyToAdd.type = ''" class="cursor-pointer"
-                                        v-if="companyToAdd.type" />
+                                <template v-slot:hint>
+                                    Pilih satu jenis
                                 </template>
-                            </q-input>
+                            </q-select>
                             <q-input bottom-slots v-model="companyToAdd.address" label="Alamat" label-color="grey-8"
                                 color="black" ref="address" lazy-rules :rules="[val => !!val || 'Alamat is required']">
                                 <template v-slot:before>
@@ -208,7 +206,7 @@ export default defineComponent({
             username: "",
             province: "",
             city: "",
-            type: "",
+            type: [],
             address: ""
         })
 
@@ -222,14 +220,15 @@ export default defineComponent({
             provinceOptions: ref([]),
             provincePick: ref([]),
             cityOptions: ref([]),
-            cityPick: ref([])
+            cityPick: ref([]),
+            typeOptions: ref([])
         }
     },
     computed: {
-        ...mapGetters('companies', ['companies', 'provinces', 'cities'])
+        ...mapGetters('companies', ['companies', 'provinces', 'cities', 'types'])
     },
     methods: {
-        ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities']),
+        ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities', 'fetchTypes']),
         onRequest(props) {
             const { page, rowsPerPage } = props.pagination
 
@@ -290,6 +289,9 @@ export default defineComponent({
         this.fetchProvinces(this.paramsProvinces).then((res) => {
             this.provinceOptions = this.provinces.map(a => a.nama_provinsi)
             this.provincePick = this.provinceOptions
+        })
+        this.fetchTypes().then((res) => {
+            this.typeOptions = this.types
         })
         // this.$store.dispatch("fetchCompanies")
     },
