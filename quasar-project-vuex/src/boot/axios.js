@@ -15,4 +15,6 @@ export default boot(({ app }) => {
   //       so you can easily perform requests against your app's API
 })
 
+axios.defaults.headers.common["Authorization"] = "Bearer " + localStorage.getItem("user")
+
 export { axios, api }

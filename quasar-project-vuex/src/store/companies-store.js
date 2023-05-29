@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import { uid } from 'quasar'
 import { api } from 'boot/axios'
+import { authHeader } from '../services/auth-header'
 
 const state = {
     companies: [
@@ -113,6 +114,22 @@ const actions = {
         try {
             const res = await api.get('/v5/perusahaan/jenis')
             commit ('fetchTypes', res.data.data)
+        } catch (error) {
+            console.log(error)
+        }
+    },
+    async addCompany({ commit }, company) {
+        try {
+            const res = await api.post('/v5/perusahaan/create', { 
+                nama: company.name, 
+                kode_provinsi: company.id_province,
+                kode_kab_kota: company.id_city,
+                jenis: company.type,
+                alamat: company.address
+             }, {
+                headers: authHeader()
+             })
+            console.log(res.data.success)
         } catch (error) {
             console.log(error)
         }

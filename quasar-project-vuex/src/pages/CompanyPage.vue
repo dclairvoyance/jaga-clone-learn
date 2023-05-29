@@ -95,14 +95,14 @@
 
                     <form @submit.prevent="submitFormAdd">
                         <q-card-section class="q-pt-none">
-                            <q-input autofocus bottom-slots v-model="companyToAdd.username" label="Nama"
-                                label-color="grey-8" color="black" ref="name" :rules="[val => !!val || 'Nama is required']">
+                            <q-input autofocus bottom-slots v-model="companyToAdd.name" label="Nama" label-color="grey-8"
+                                color="black" ref="name" :rules="[val => !!val || 'Nama is required']">
                                 <template v-slot:before>
                                     <q-icon name="comment" />
                                 </template>
                                 <template v-slot:append>
-                                    <q-icon name="close" @click="companyToAdd.username = ''" class="cursor-pointer"
-                                        v-if="companyToAdd.username" />
+                                    <q-icon name="close" @click="companyToAdd.name = ''" class="cursor-pointer"
+                                        v-if="companyToAdd.name" />
                                 </template>
                             </q-input>
                             <q-select ref="province" use-input fill-input hide-selected bottom-slots
@@ -203,11 +203,13 @@ export default defineComponent({
         })
 
         const companyToAdd = ref({
-            username: "",
+            name: "",
             province: "",
             city: "",
-            type: [],
-            address: ""
+            type: "",
+            address: "",
+            id_province: null,
+            id_city: null
         })
 
         return {
@@ -228,7 +230,7 @@ export default defineComponent({
         ...mapGetters('companies', ['companies', 'provinces', 'cities', 'types'])
     },
     methods: {
-        ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities', 'fetchTypes']),
+        ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities', 'fetchTypes', 'addCompany']),
         onRequest(props) {
             const { page, rowsPerPage } = props.pagination
 
@@ -252,7 +254,6 @@ export default defineComponent({
             update(() => {
                 const search = val.toLowerCase()
                 this.provincePick = this.provinceOptions.filter(v => v.toLowerCase().indexOf(search) > -1)
-                // update here
             })
         },
         filterCity(val, update, abort) {
@@ -265,17 +266,40 @@ export default defineComponent({
             this.openDialogAdd = true
             this.resetFill()
         },
+        submitFormAdd() {
+            this.$refs.name.validate()
+            this.$refs.province.validate()
+            this.$refs.city.validate()
+            this.$refs.type.validate()
+            this.$refs.address.validate()
+            if (!this.$refs.name.hasError && !this.$refs.address.hasError && this.companyToAdd.province.length > 0 && this.companyToAdd.city.length > 0 && this.companyToAdd.type.length > 0) {
+                this.addThisCompany()
+                this.openDialogAdd = false
+            }
+        },
+        addThisCompany() {
+            const index = this.cities.findIndex(a => a.nama === this.companyToAdd.city)
+            this.companyToAdd.id_city = this.cities[index].id_instansi
+            this.addCompany({ ...this.companyToAdd }).then((res) => {
+                this.fetchCompanies(this.paramsCompanies).then((res) => {
+                    this.pagination.rowsNumber = this.companies.total_record
+                })
+            })
+        },
         resetFill() {
-            this.companyToAdd.username = ""
+            this.companyToAdd.name = ""
             this.companyToAdd.province = ""
             this.companyToAdd.city = ""
             this.companyToAdd.type = ""
             this.companyToAdd.address = ""
+            this.companyToAdd.id_province = null
+            this.companyToAdd.id_city = null
         },
         refetchCities() {
             this.companyToAdd.city = ""
             const index = this.provinces.findIndex(a => a.nama_provinsi === this.companyToAdd.province)
             this.paramsCities.id_provinsi = this.provinces[index].id_provinsi
+            this.companyToAdd.id_province = this.provinces[index].id_provinsi
             this.fetchCities(this.paramsCities).then((res) => {
                 this.cityOptions = this.cities.map(a => a.nama)
                 this.cityPick = this.cityOptions
