@@ -168,6 +168,24 @@ const actions = {
             console.log(error)
         }
     },
+    async deleteCompany({ commit }, id) {
+        try {
+            const res = await api.post('/v5/perusahaan/delete/' + id, {}, {
+                headers: authHeader()
+            })
+        } catch (error) {
+            console.log(error)
+        }
+    },
+    async restoreCompany({ commit }, id) {
+        try {
+            const res = await api.post('/v5/perusahaan/restore/' + id, {}, {
+                headers: authHeader()
+            })
+        } catch (error) {
+            console.log(error)
+        }
+    },
 }
 
 const getters = {

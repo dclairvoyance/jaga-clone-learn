@@ -81,7 +81,9 @@
                     <q-td :props="action">
                         <q-btn flat icon="info" @click="showDialogDetails(action.row.id)" />
                         <q-btn flat icon="edit" @click="showDialogEdit(action.row.id)" />
-                        <q-btn flat icon="delete" @click="showDialogDelete(action.row.id)" />
+                        <q-btn v-if="!action.row.deleted_at" flat icon="delete" @click="showDialogDelete(action.row.id)" />
+                        <q-btn v-if="action.row.deleted_at" flat icon="restore_from_trash"
+                            @click="showDialogRestore(action.row.id)" />
                     </q-td>
                 </template>
             </q-table>
@@ -254,6 +256,42 @@
                 </q-card>
             </q-dialog>
 
+            <!--dialog delete-->
+            <q-dialog v-model="openDialogDelete" persistent>
+                <q-card style="min-width: 350px">
+                    <q-card-section>
+                        <div class="text-h6">Konfirmasi</div>
+                    </q-card-section>
+
+                    <q-card-section>
+                        <div class="text-p">Perusahaan akan dihapus. Apakah Anda yakin?</div>
+                    </q-card-section>
+
+                    <q-card-actions align="right">
+                        <q-btn flat label="Batal" v-close-popup />
+                        <q-btn color="black" autofocus label="Hapus" v-close-popup @click="deleteThisCompany()" />
+                    </q-card-actions>
+                </q-card>
+            </q-dialog>
+
+            <!--dialog restore-->
+            <q-dialog v-model="openDialogRestore" persistent>
+                <q-card style="min-width: 350px">
+                    <q-card-section>
+                        <div class="text-h6">Konfirmasi</div>
+                    </q-card-section>
+
+                    <q-card-section>
+                        <div class="text-p">Perusahaan akan direstorasi. Apakah Anda yakin?</div>
+                    </q-card-section>
+
+                    <q-card-actions align="right">
+                        <q-btn flat label="Batal" v-close-popup />
+                        <q-btn color="black" autofocus label="Restorasi" v-close-popup @click="restoreThisCompany()" />
+                    </q-card-actions>
+                </q-card>
+            </q-dialog>
+
             <!--button add-->
             <div class="fixed-bottom-right q-pa-lg">
                 <q-btn @click="showDialogAdd()" round dense color="secondary" size="20px">
@@ -328,6 +366,8 @@ export default defineComponent({
             openDialogAdd: ref(false),
             openDialogEdit: ref(false),
             openDialogDetails: ref(false),
+            openDialogDelete: ref(false),
+            openDialogRestore: ref(false),
             provinceOptions: ref([]),
             provincePick: ref([]),
             cityOptions: ref([]),
@@ -339,7 +379,7 @@ export default defineComponent({
         ...mapGetters('companies', ['companies', 'provinces', 'cities', 'types', 'companyDetails'])
     },
     methods: {
-        ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities', 'fetchTypes', 'addCompany', 'fetchCompanyDetails', 'updateCompany']),
+        ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities', 'fetchTypes', 'addCompany', 'fetchCompanyDetails', 'updateCompany', 'deleteCompany', 'restoreCompany']),
         onRequest(props) {
             const { page, rowsPerPage } = props.pagination
 
@@ -395,6 +435,14 @@ export default defineComponent({
             this.selectedRow = id
             this.fetchCompanyDetails(this.selectedRow)
         },
+        showDialogDelete(id) {
+            this.openDialogDelete = true
+            this.selectedRow = id
+        },
+        showDialogRestore(id) {
+            this.openDialogRestore = true
+            this.selectedRow = id
+        },
         submitFormAdd() {
             this.$refs.name.validate()
             this.$refs.province.validate()
@@ -433,6 +481,16 @@ export default defineComponent({
                 id: this.selectedRow,
                 updates: this.companyToEdit
             }).then((res) => {
+                this.fetchCompanies(this.paramsCompanies)
+            })
+        },
+        deleteThisCompany() {
+            this.deleteCompany(this.selectedRow).then((res) => {
+                this.fetchCompanies(this.paramsCompanies)
+            })
+        },
+        restoreThisCompany() {
+            this.restoreCompany(this.selectedRow).then((res) => {
                 this.fetchCompanies(this.paramsCompanies)
             })
         },
