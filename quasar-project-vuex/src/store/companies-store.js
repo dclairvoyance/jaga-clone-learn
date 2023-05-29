@@ -79,14 +79,16 @@ const actions = {
     async fetchCompanies({ commit }, params) {
         // console.log("request with limit", params.limit, "and offset", params.offset)
         try {
-            const res = await api.get('/v5/perusahaan', { params: {
-                keyword: params.keyword,
-                kode_provinsi: params.kode_provinsi,
-                kode_kab_kota: params.kode_kab_kota,
-                limit: params.limit,
-                offset: params.offset
-            }})
-            commit ('fetchCompanies', res.data.data)
+            const res = await api.get('/v5/perusahaan', {
+                params: {
+                    keyword: params.keyword,
+                    kode_provinsi: params.kode_provinsi,
+                    kode_kab_kota: params.kode_kab_kota,
+                    limit: params.limit,
+                    offset: params.offset
+                }
+            })
+            commit('fetchCompanies', res.data.data)
         } catch (error) {
             console.log(error)
         }
@@ -94,32 +96,36 @@ const actions = {
     async fetchCompanyDetails({ commit }, id) {
         try {
             const res = await api.get('/v5/perusahaan/detail/' + id)
-            commit ('fetchCompanyDetails', res.data.data)
+            commit('fetchCompanyDetails', res.data.data)
         } catch (error) {
             console.log(error)
         }
     },
     async fetchProvinces({ commit }, params) {
         try {
-            const res = await api.get('/v5/bansos/provinsi_list', { params: {
-                keyword: params.keyword,
-                limit: params.limit,
-                offset: params.offset
-            }})
-            commit ('fetchProvinces', res.data.data.result)
+            const res = await api.get('/v5/bansos/provinsi_list', {
+                params: {
+                    keyword: params.keyword,
+                    limit: params.limit,
+                    offset: params.offset
+                }
+            })
+            commit('fetchProvinces', res.data.data.result)
         } catch (error) {
             console.log(error)
         }
     },
     async fetchCities({ commit }, params) {
         try {
-            const res = await api.get('/v5/bansos/pemda_list', { params: {
-                id_provinsi: params.id_provinsi,
-                keyword: params.keyword,
-                limit: params.limit,
-                offset: params.offset
-            }})
-            commit ('fetchCities', res.data.data.result)
+            const res = await api.get('/v5/bansos/pemda_list', {
+                params: {
+                    id_provinsi: params.id_provinsi,
+                    keyword: params.keyword,
+                    limit: params.limit,
+                    offset: params.offset
+                }
+            })
+            commit('fetchCities', res.data.data.result)
         } catch (error) {
             console.log(error)
         }
@@ -127,27 +133,41 @@ const actions = {
     async fetchTypes({ commit }) {
         try {
             const res = await api.get('/v5/perusahaan/jenis')
-            commit ('fetchTypes', res.data.data)
+            commit('fetchTypes', res.data.data)
         } catch (error) {
             console.log(error)
         }
     },
     async addCompany({ commit }, company) {
         try {
-            const res = await api.post('/v5/perusahaan/create', { 
-                nama: company.name, 
+            const res = await api.post('/v5/perusahaan/create', {
+                nama: company.name,
                 kode_provinsi: company.id_province,
                 kode_kab_kota: company.id_city,
                 jenis: company.type,
                 alamat: company.address
-             }, {
+            }, {
                 headers: authHeader()
-             })
-            console.log(res.data.success)
+            })
         } catch (error) {
             console.log(error)
         }
-    }
+    },
+    async updateCompany({ commit }, company) {
+        try {
+            const res = await api.post('/v5/perusahaan/update/' + company.id, {
+                nama: company.updates.name,
+                kode_provinsi: company.updates.id_province,
+                kode_kab_kota: company.updates.id_city,
+                jenis: company.updates.type,
+                alamat: company.updates.address
+            }, {
+                headers: authHeader()
+            })
+        } catch (error) {
+            console.log(error)
+        }
+    },
 }
 
 const getters = {

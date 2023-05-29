@@ -80,7 +80,7 @@
                 <template v-slot:body-cell-action="action">
                     <q-td :props="action">
                         <q-btn flat icon="info" @click="showDialogDetails(action.row.id)" />
-                        <q-btn flat icon="edit" @click="showDialogUpdate(action.row.id)" />
+                        <q-btn flat icon="edit" @click="showDialogEdit(action.row.id)" />
                         <q-btn flat icon="delete" @click="showDialogDelete(action.row.id)" />
                     </q-td>
                 </template>
@@ -153,6 +153,80 @@
 
                         <q-card-actions class="q-pa-md">
                             <q-btn label="Tambah" color="secondary" type="submit" />
+                            <q-btn label="Batal" color="grey-8" v-close-popup />
+                        </q-card-actions>
+                    </form>
+                </q-card>
+            </q-dialog>
+
+            <!--dialog edit-->
+            <q-dialog v-model="openDialogEdit" persistent>
+                <q-card style="min-width: 350px; width: 1400px">
+                    <q-card-section>
+                        <div class="text-h6">Ubah Perusahaan</div>
+                    </q-card-section>
+
+                    <form @submit.prevent="submitFormEdit">
+                        <q-card-section class="q-pt-none">
+                            <q-input autofocus bottom-slots v-model="companyToEdit.name" label="Nama" label-color="grey-8"
+                                color="black" ref="name" :rules="[val => !!val || 'Nama is required']">
+                                <template v-slot:before>
+                                    <q-icon name="comment" />
+                                </template>
+                                <template v-slot:append>
+                                    <q-icon name="close" @click="companyToEdit.name = ''" class="cursor-pointer"
+                                        v-if="companyToEdit.name" />
+                                </template>
+                            </q-input>
+                            <q-select ref="province" use-input fill-input hide-selected bottom-slots
+                                v-model="companyToEdit.province" label="Kode Provinsi" label-color="grey-8"
+                                color="secondary" :options="provincePick" use-chips stack-label
+                                :rules="[val => val !== null || 'Pilih satu provinsi']" @filter="filterProvince"
+                                input-debounce="0" @update:model-value="refetchCitiesEdit()">
+                                <template v-slot:before>
+                                    <q-icon name="house" />
+                                </template>
+                                <template v-slot:hint>
+                                    Pilih satu provinsi
+                                </template>
+                            </q-select>
+                            <q-select ref="city" use-input fill-input hide-selected bottom-slots
+                                v-model="companyToEdit.city" label="Kode Kota/Kabupaten" label-color="grey-8"
+                                color="secondary" :options="cityPick" use-chips stack-label
+                                :rules="[val => val !== null || 'Pilih satu kota/kabupaten']" @filter="filterCity"
+                                input-debounce="0">
+                                <template v-slot:before>
+                                    <q-icon name="home" />
+                                </template>
+                                <template v-slot:hint>
+                                    Pilih satu kota/kabupaten
+                                </template>
+                            </q-select>
+                            <q-select ref="type" bottom-slots v-model="companyToEdit.type" label="Jenis"
+                                label-color="grey-8" color="secondary" :options="typeOptions"
+                                :rules="[val => val !== null || 'Pilih satu jenis']">
+                                <template v-slot:before>
+                                    <q-icon name="checklist" />
+                                </template>
+                                <template v-slot:hint>
+                                    Pilih satu jenis
+                                </template>
+                            </q-select>
+                            <q-input bottom-slots v-model="companyToEdit.address" label="Alamat" label-color="grey-8"
+                                color="black" ref="address" lazy-rules :rules="[val => !!val || 'Alamat is required']">
+                                <template v-slot:before>
+                                    <q-icon name="contact_mail" />
+                                </template>
+                                <template v-slot:append>
+                                    <q-icon name="close" @click="companyToEdit.address = ''" class="cursor-pointer"
+                                        v-if="companyToEdit.address" />
+                                </template>
+                            </q-input>
+
+                        </q-card-section>
+
+                        <q-card-actions class="q-pa-md">
+                            <q-btn label="Ubah" color="secondary" type="submit" />
                             <q-btn label="Batal" color="grey-8" v-close-popup />
                         </q-card-actions>
                     </form>
@@ -233,14 +307,26 @@ export default defineComponent({
             id_city: null
         })
 
+        const companyToEdit = ref({
+            name: "",
+            province: "",
+            city: "",
+            type: "",
+            address: "",
+            id_province: null,
+            id_city: null
+        })
+
         return {
             paramsCompanies,
             paramsProvinces,
             paramsCities,
             pagination,
             companyToAdd,
+            companyToEdit,
             selectedRow: ref(null),
             openDialogAdd: ref(false),
+            openDialogEdit: ref(false),
             openDialogDetails: ref(false),
             provinceOptions: ref([]),
             provincePick: ref([]),
@@ -253,7 +339,7 @@ export default defineComponent({
         ...mapGetters('companies', ['companies', 'provinces', 'cities', 'types', 'companyDetails'])
     },
     methods: {
-        ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities', 'fetchTypes', 'addCompany', 'fetchCompanyDetails']),
+        ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities', 'fetchTypes', 'addCompany', 'fetchCompanyDetails', 'updateCompany']),
         onRequest(props) {
             const { page, rowsPerPage } = props.pagination
 
@@ -289,6 +375,21 @@ export default defineComponent({
             this.openDialogAdd = true
             this.resetFill()
         },
+        showDialogEdit(id) {
+            this.openDialogEdit = true
+            this.selectedRow = id
+            const index = this.companies.result.findIndex(a => a.id === id)
+            // this.companyToEdit = { ...this.companies.result[index] }
+            this.companyToEdit.name = this.companies.result[index].nama
+            this.companyToEdit.province = this.companies.result[index].provinsi
+            this.companyToEdit.city = this.companies.result[index].kab_kota
+            this.companyToEdit.type = this.companies.result[index].jenis
+            this.companyToEdit.address = this.companies.result[index].alamat
+            this.companyToEdit.id_province = this.companies.result[index].kode_provinsi
+            this.companyToEdit.id_city = this.companies.result[index].kode_kab_kota
+            this.paramsCities.id_provinsi = this.companies.result[index].kode_provinsi
+            this.fetchCitiesEdit()
+        },
         showDialogDetails(id) {
             this.openDialogDetails = true
             this.selectedRow = id
@@ -305,13 +406,34 @@ export default defineComponent({
                 this.openDialogAdd = false
             }
         },
+        submitFormEdit() {
+            this.$refs.name.validate()
+            this.$refs.province.validate()
+            this.$refs.city.validate()
+            this.$refs.type.validate()
+            this.$refs.address.validate()
+            if (!this.$refs.name.hasError && !this.$refs.address.hasError && this.companyToEdit.province !== null && this.companyToEdit.city !== null && this.companyToEdit.type !== null) {
+                this.editThisCompany()
+                this.openDialogEdit = false
+            }
+        },
         addThisCompany() {
             const index = this.cities.findIndex(a => a.nama === this.companyToAdd.city)
-            this.companyToAdd.id_city = this.cities[index].id_instansi
+            this.companyToAdd.id_city = this.cities[index].id_kota_kabupaten
             this.addCompany({ ...this.companyToAdd }).then((res) => {
                 this.fetchCompanies(this.paramsCompanies).then((res) => {
                     this.pagination.rowsNumber = this.companies.total_record
                 })
+            })
+        },
+        editThisCompany() {
+            const index = this.cities.findIndex(a => a.nama === this.companyToEdit.city)
+            this.companyToEdit.id_city = this.cities[index].id_kota_kabupaten
+            this.updateCompany({
+                id: this.selectedRow,
+                updates: this.companyToEdit
+            }).then((res) => {
+                this.fetchCompanies(this.paramsCompanies)
             })
         },
         resetFill() {
@@ -323,6 +445,22 @@ export default defineComponent({
             this.companyToAdd.id_province = null
             this.companyToAdd.id_city = null
         },
+        fetchCitiesEdit() {
+            this.fetchCities(this.paramsCities).then((res) => {
+                this.cityOptions = this.cities.map(a => a.nama)
+                this.cityPick = this.cityOptions
+            })
+        },
+        refetchCitiesEdit() {
+            this.companyToEdit.city = ""
+            const index = this.provinces.findIndex(a => a.nama_provinsi === this.companyToEdit.province)
+            this.paramsCities.id_provinsi = this.provinces[index].id_provinsi
+            this.companyToEdit.id_province = this.provinces[index].id_provinsi
+            this.fetchCities(this.paramsCities).then((res) => {
+                this.cityOptions = this.cities.map(a => a.nama)
+                this.cityPick = this.cityOptions
+            })
+        },
         refetchCities() {
             this.companyToAdd.city = ""
             const index = this.provinces.findIndex(a => a.nama_provinsi === this.companyToAdd.province)
@@ -332,7 +470,7 @@ export default defineComponent({
                 this.cityOptions = this.cities.map(a => a.nama)
                 this.cityPick = this.cityOptions
             })
-        },
+        }
     },
     mounted() {
         this.fetchCompanies(this.paramsCompanies).then((res) => {
