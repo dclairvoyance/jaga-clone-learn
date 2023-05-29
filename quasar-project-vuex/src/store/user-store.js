@@ -9,28 +9,31 @@ const initialState = userLocal
     
 
 const state = {
-    user: initialState
+    user: initialState,
+    message: ""
 }
 
 const mutations = {
     login(state, user) {
         state.loggedIn = true
         state.user = user
+        state.message = ""
+    },
+    loginFailed(state, message) {
+        state.message = message
     }
 }
 
 const actions = {
     async login({ commit }, user) {
-        console.log(authHeader())
         try {
             const res = await api.post('/v5/auth/login', { username: user.username, password: user.password })
-            console.log(res.data.success)
             if (res.data.success) {
                 localStorage.setItem('user', JSON.stringify(res.data.data.token))
                 commit('login', res.data.data.token)
                 this.$router.push('/')
             } else {
-                console.log(res.data.message)
+                commit('loginFailed', res.data.message)
             }
         } catch (error) {
             console.log(error)
@@ -41,6 +44,9 @@ const actions = {
 const getters = {
     user: (state) => {
         return state.user
+    },
+    message: (state) => {
+        return state.message
     }
 }
 

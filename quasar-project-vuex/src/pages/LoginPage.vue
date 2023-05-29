@@ -1,7 +1,7 @@
 <template>
     <q-page class="row justify-center items-center">
         <div class="column q-pa-lg">
-            <q-card square class="shadow-8" style="width:360px;height:360px;">
+            <q-card square class="shadow-8" style="width:360px">
                 <q-card-section class="bg-grey-4 text-center">
                     <q-img class="" :src="'https://jaga.id/datachallenge/img/logojaga.png'" spinner-color="white"
                         style="max-height: 64px; width: 128px" />
@@ -21,6 +21,9 @@
                             </q-input>
                         </q-form>
                     </q-card-section>
+                    <q-card-section class="q-px-lg q-py-none q-ma-none" color="secondary">
+                        <p class="text-red q-pa-none q-ma-none">{{ message }}</p>
+                    </q-card-section>
                     <q-card-actions class="q-px-lg">
                         <q-btn type="submit" unelevated size="lg" color="secondary" class="full-width text-white" label="Log In" />
                     </q-card-actions>
@@ -35,7 +38,7 @@
   
 <script>
 import { defineComponent } from 'vue'
-import { mapActions } from 'vuex'
+import { mapActions, mapGetters } from 'vuex'
 
 export default defineComponent({
     data() {
@@ -45,6 +48,7 @@ export default defineComponent({
         }
     },
     computed: {
+        ...mapGetters('user', ['message']),
         isLoggedIn() {
             return this.$store.getters['user/user'].loggedIn
         }
