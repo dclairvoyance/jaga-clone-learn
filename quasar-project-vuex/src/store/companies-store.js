@@ -27,6 +27,9 @@ const state = {
     ],
     types: [
 
+    ],
+    companyDetails: [
+
     ]
 }
 
@@ -42,6 +45,9 @@ const mutations = {
     },
     fetchCompanies(state, companies) {
         state.companies = companies
+    },
+    fetchCompanyDetails(state, companyDetails) {
+        state.companyDetails = companyDetails
     },
     fetchProvinces(state, provinces) {
         state.provinces = provinces
@@ -81,6 +87,14 @@ const actions = {
                 offset: params.offset
             }})
             commit ('fetchCompanies', res.data.data)
+        } catch (error) {
+            console.log(error)
+        }
+    },
+    async fetchCompanyDetails({ commit }, id) {
+        try {
+            const res = await api.get('/v5/perusahaan/detail/' + id)
+            commit ('fetchCompanyDetails', res.data.data)
         } catch (error) {
             console.log(error)
         }
@@ -148,6 +162,9 @@ const getters = {
     },
     types: (state) => {
         return state.types
+    },
+    companyDetails: (state) => {
+        return state.companyDetails
     }
 }
 

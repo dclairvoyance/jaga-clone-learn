@@ -159,6 +159,27 @@
                 </q-card>
             </q-dialog>
 
+            <!--dialog details-->
+            <q-dialog v-model="openDialogDetails" persistent>
+                <q-card>
+                    <q-card-section>
+                        <div class="text-h6">Details</div>
+                    </q-card-section>
+
+                    <q-separator />
+
+                    <q-card-section style="max-height: 50vh" class="scroll">
+                        <p>{{ companyDetails }}</p>
+                    </q-card-section>
+
+                    <q-separator />
+
+                    <q-card-actions align="right">
+                        <q-btn label="OK" color="black" v-close-popup />
+                    </q-card-actions>
+                </q-card>
+            </q-dialog>
+
             <!--button add-->
             <div class="fixed-bottom-right q-pa-lg">
                 <q-btn @click="showDialogAdd()" round dense color="secondary" size="20px">
@@ -218,7 +239,9 @@ export default defineComponent({
             paramsCities,
             pagination,
             companyToAdd,
+            selectedRow: ref(null),
             openDialogAdd: ref(false),
+            openDialogDetails: ref(false),
             provinceOptions: ref([]),
             provincePick: ref([]),
             cityOptions: ref([]),
@@ -227,10 +250,10 @@ export default defineComponent({
         }
     },
     computed: {
-        ...mapGetters('companies', ['companies', 'provinces', 'cities', 'types'])
+        ...mapGetters('companies', ['companies', 'provinces', 'cities', 'types', 'companyDetails'])
     },
     methods: {
-        ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities', 'fetchTypes', 'addCompany']),
+        ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities', 'fetchTypes', 'addCompany', 'fetchCompanyDetails']),
         onRequest(props) {
             const { page, rowsPerPage } = props.pagination
 
@@ -265,6 +288,11 @@ export default defineComponent({
         showDialogAdd() {
             this.openDialogAdd = true
             this.resetFill()
+        },
+        showDialogDetails(id) {
+            this.openDialogDetails = true
+            this.selectedRow = id
+            this.fetchCompanyDetails(this.selectedRow)
         },
         submitFormAdd() {
             this.$refs.name.validate()
