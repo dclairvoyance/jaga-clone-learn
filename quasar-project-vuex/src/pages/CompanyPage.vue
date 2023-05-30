@@ -71,11 +71,36 @@
                     },
                 ]">
                 <template v-slot:top-right>
-                    <q-input v-model="search" borderless dense debounce="300" placeholder="Search" @update:model-value="filterSearch()">
+                    <q-input v-model="search" borderless dense debounce="300" placeholder="Search"
+                        @update:model-value="filterSearch()">
                         <template v-slot:append>
                             <q-icon name="search" />
                         </template>
                     </q-input>
+                </template>
+                <template v-slot:top-left>
+                    <q-select color="black" style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
+                        label-color="grey-8" filled v-model="filterTypes" multiple :options="typeOptions" use-chips
+                        stack-label label="Filter Jenis" @update:model-value="filterSearch()">
+                        <template v-slot:prepend>
+                            <q-icon name="checklist" />
+                        </template>
+                    </q-select>
+                    <q-select color="black" style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
+                        label-color="grey-8" filled v-model="filterProvinces" multiple :options="provinceOptions" use-chips
+                        stack-label label="Filter Provinsi" @update:model-value="filterSearch()">
+                        <template v-slot:prepend>
+                            <q-icon name="house" />
+                        </template>
+                    </q-select>
+                    <q-select color="black" v-if="filterProvinces.length > 0"
+                        style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
+                        label-color="grey-8" filled v-model="filterCities" multiple :options="cityOptions" use-chips
+                        stack-label label="Filter Kab/Kota" @update:model-value="filterSearch()">
+                        <template v-slot:prepend>
+                            <q-icon name="home" />
+                        </template>
+                    </q-select>
                 </template>
                 <template v-slot:body-cell-action="action">
                     <q-td :props="action">
@@ -404,7 +429,10 @@ export default defineComponent({
             cities: ref([]),
             types: ref([]),
             companyDetails: ref(''),
-            search: ref('')
+            search: ref(''),
+            filterTypes: ref([]),
+            filterProvinces: ref([]),
+            filterCities: ref([]),
         }
     },
     computed: {
@@ -441,6 +469,14 @@ export default defineComponent({
                 const search = val.toLowerCase()
                 this.cityPick = this.cityOptions.filter(v => v.toLowerCase().indexOf(search) > -1)
             })
+        },
+        filterAll() {
+            const filteredHomes = json.homes.filter(x =>
+                x.price <= 1000 &&
+                x.sqft >= 500 &&
+                x.num_of_beds >= 2 &&
+                x.num_of_baths >= 2.5
+            );
         },
         showDialogAdd() {
             this.openDialogAdd = true
@@ -575,6 +611,16 @@ export default defineComponent({
                 this.cityPick = this.cityOptions
             })
         },
+        async fetchCitiesFilter() {
+            this.cityOptions = []
+            for (let i = 0; i < this.filterProvinces.length; i++) {
+                const index = this.provinces.findIndex(a => a.nama_provinsi === this.filterProvinces[i])
+                this.paramsCities.id_provinsi = this.provinces[index].id_provinsi
+                await fetchCities(this.paramsCities).then((res) => {
+                    this.cityOptions.push(...res.data.data.result.map(a => a.id_kota_kabupaten))
+                })
+            }
+        },
         refetchCities() {
             this.companyToAdd.city = ""
             const index = this.provinces.findIndex(a => a.nama_provinsi === this.companyToAdd.province)
@@ -587,13 +633,62 @@ export default defineComponent({
             })
         },
         filterSearch() {
+            this.fetchCitiesFilter().then((res) => {
+                let tempOptions = this.filterCities
+                for (let i = 0; i < tempOptions.length; i++) {
+                    let found = false
+                    for (let j = 0; j < this.cityOptions.length; j++) {
+                        if (this.cityOptions[j] === tempOptions[i]) {
+                            found = true
+                        }
+                    }
+                    if (!found) {
+                        this.filterCities.splice(i, 1)
+                    }
+                }
+            })
+
             this.pagination.page = 1
             this.paramsCompanies.keyword = this.search
-            fetchCompanies(this.paramsCompanies).then((res) => {
-                this.companies = res.data.data.result
-                this.pagination.rowsNumber = res.data.data.total_record
-                this.totalCompanies = res.data.data.total_record
-            })
+            this.paramsCompanies.kode_provinsi = null
+            this.paramsCompanies.kode_kab_kota = null
+            this.companies = []
+            this.pagination.rowsNumber = 0
+            if (this.filterCities.length === 0) {
+                if (this.filterProvinces.length > 0) {
+                    for (let i = 0; i < this.filterProvinces.length; i++) {
+                        const index = this.provinces.findIndex(a => a.nama_provinsi === this.filterProvinces[i])
+                        this.paramsCompanies.kode_provinsi = this.provinces[index].id_provinsi
+                        fetchCompanies(this.paramsCompanies).then((res) => {
+                            this.companies.push(...res.data.data.result)
+                            this.pagination.rowsNumber += res.data.data.total_record
+                        })
+                    }
+                } else {
+                    this.paramsCompanies.kode_provinsi = null
+                    fetchCompanies(this.paramsCompanies).then((res) => {
+                        this.companies.push(...res.data.data.result)
+                        this.pagination.rowsNumber += res.data.data.total_record
+                    })
+                }
+            } else {
+                if (this.filterProvinces.length > 0) {
+                    for (let i = 0; i < this.filterCities.length; i++) {
+                        this.paramsCompanies.kode_kab_kota = this.filterCities[i]
+                        fetchCompanies(this.paramsCompanies).then((res) => {
+                            this.companies.push(...res.data.data.result)
+                            this.pagination.rowsNumber += res.data.data.total_record
+                        })
+                    }
+                } else {
+                    this.paramsCompanies.kode_provinsi = null
+                    fetchCompanies(this.paramsCompanies).then((res) => {
+                        this.companies.push(...res.data.data.result)
+                        this.pagination.rowsNumber += res.data.data.total_record
+                    })
+                }
+            }
+            // filter type
         }
     },
     mounted() {
