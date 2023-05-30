@@ -6,7 +6,7 @@
             </div>
             <q-separator />
             <q-table class="q-ma-lg" bordered row-key="id" v-model:pagination="pagination" @request="onRequest"
-                :rows="companies.result" :columns="[
+                :loading="loading" :rows="companies" :columns="[
                     {
                         label: 'ID',
                         name: 'id',
@@ -71,7 +71,7 @@
                     },
                 ]">
                 <template v-slot:top-right>
-                    <q-input borderless dense debounce="300" placeholder="Search">
+                    <q-input v-model="search" borderless dense debounce="300" placeholder="Search" @update:model-value="filterSearch()">
                         <template v-slot:append>
                             <q-icon name="search" />
                         </template>
@@ -110,7 +110,7 @@
                             <q-select ref="province" use-input fill-input hide-selected bottom-slots
                                 v-model="companyToAdd.province" label="Kode Provinsi" label-color="grey-8" color="secondary"
                                 :options="provincePick" use-chips stack-label
-                                :rules="[val => val.length > 0 || 'Pilih satu provinsi']" @filter="filterProvince"
+                                :rules="[val => val !== null || 'Pilih satu provinsi']" @filter="filterProvince"
                                 input-debounce="0" @update:model-value="refetchCities()">
                                 <template v-slot:before>
                                     <q-icon name="house" />
@@ -119,10 +119,22 @@
                                     Pilih satu provinsi
                                 </template>
                             </q-select>
-                            <q-select ref="city" use-input fill-input hide-selected bottom-slots v-model="companyToAdd.city"
-                                label="Kode Kota/Kabupaten" label-color="grey-8" color="secondary" :options="cityPick"
-                                use-chips stack-label :rules="[val => val.length > 0 || 'Pilih satu kota/kabupaten']"
-                                @filter="filterCity" input-debounce="0">
+                            <q-select v-if="companyToAdd.province === ''" disable use-input fill-input hide-selected
+                                bottom-slots v-model="companyToAdd.city" label="Kode Kota/Kabupaten" label-color="grey-8"
+                                color="secondary" use-chips stack-label
+                                :rules="[val => val !== null || 'Pilih provinsi terlebih dahulu']">
+                                <template v-slot:before>
+                                    <q-icon name="home" />
+                                </template>
+                                <template v-slot:hint>
+                                    Pilih provinsi terlebih dahulu
+                                </template>
+                            </q-select>
+                            <q-select v-if="companyToAdd.province !== ''" ref="city" use-input fill-input hide-selected
+                                bottom-slots v-model="companyToAdd.city" label="Kode Kota/Kabupaten" label-color="grey-8"
+                                color="secondary" :options="cityPick" use-chips stack-label
+                                :rules="[val => val !== null || 'Pilih satu kota/kabupaten']" @filter="filterCity"
+                                input-debounce="0">
                                 <template v-slot:before>
                                     <q-icon name="home" />
                                 </template>
@@ -132,7 +144,7 @@
                             </q-select>
                             <q-select ref="type" bottom-slots v-model="companyToAdd.type" label="Jenis" label-color="grey-8"
                                 color="secondary" :options="typeOptions"
-                                :rules="[val => val.length > 0 || 'Pilih satu jenis']">
+                                :rules="[val => val !== null || 'Pilih satu jenis']">
                                 <template v-slot:before>
                                     <q-icon name="checklist" />
                                 </template>
@@ -192,8 +204,19 @@
                                     Pilih satu provinsi
                                 </template>
                             </q-select>
-                            <q-select ref="city" use-input fill-input hide-selected bottom-slots
-                                v-model="companyToEdit.city" label="Kode Kota/Kabupaten" label-color="grey-8"
+                            <q-select v-if="companyToEdit.province === ''" disable use-input fill-input hide-selected
+                                bottom-slots v-model="companyToEdit.city" label="Kode Kota/Kabupaten" label-color="grey-8"
+                                color="secondary" use-chips stack-label
+                                :rules="[val => val !== null || 'Pilih provinsi terlebih dahulu']">
+                                <template v-slot:before>
+                                    <q-icon name="home" />
+                                </template>
+                                <template v-slot:hint>
+                                    Pilih provinsi terlebih dahulu
+                                </template>
+                            </q-select>
+                            <q-select v-if="companyToEdit.province !== ''" ref="city" use-input fill-input hide-selected
+                                bottom-slots v-model="companyToEdit.city" label="Kode Kota/Kabupaten" label-color="grey-8"
                                 color="secondary" :options="cityPick" use-chips stack-label
                                 :rules="[val => val !== null || 'Pilih satu kota/kabupaten']" @filter="filterCity"
                                 input-debounce="0">
@@ -305,13 +328,14 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import { mapActions, mapGetters } from 'vuex'
+import { fetchCompanies, fetchProvinces, fetchCities, fetchTypes, addCompany, fetchCompanyDetails, updateCompany, deleteCompany, restoreCompany } from '../services/companies-api'
 
 export default defineComponent({
     setup() {
         const pagination = ref({
             page: 1,
-            rowsPerPage: 5,
-            rowsNumber: 5
+            rowsPerPage: 10,
+            rowsNumber: 10
         })
 
         const paramsCompanies = ref({
@@ -372,14 +396,22 @@ export default defineComponent({
             provincePick: ref([]),
             cityOptions: ref([]),
             cityPick: ref([]),
-            typeOptions: ref([])
+            typeOptions: ref([]),
+            loading: ref(false),
+            totalCompanies: ref(0),
+            companies: ref([]),
+            provinces: ref([]),
+            cities: ref([]),
+            types: ref([]),
+            companyDetails: ref(''),
+            search: ref('')
         }
     },
     computed: {
-        ...mapGetters('companies', ['companies', 'provinces', 'cities', 'types', 'companyDetails'])
+        // ...mapGetters('companies', ['companies', 'provinces', 'cities', 'types', 'companyDetails'])
     },
     methods: {
-        ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities', 'fetchTypes', 'addCompany', 'fetchCompanyDetails', 'updateCompany', 'deleteCompany', 'restoreCompany']),
+        // ...mapActions('companies', ['fetchCompanies', 'fetchProvinces', 'fetchCities', 'fetchTypes', 'addCompany', 'fetchCompanyDetails', 'updateCompany', 'deleteCompany', 'restoreCompany']),
         onRequest(props) {
             const { page, rowsPerPage } = props.pagination
 
@@ -390,14 +422,13 @@ export default defineComponent({
             this.paramsCompanies.offset = (page - 1) * rowsPerPage
 
             // fetch data from "server"
-            this.fetchCompanies(this.paramsCompanies)
+            fetchCompanies(this.paramsCompanies).then((res) => {
+                this.companies = res.data.data.result
+            })
 
             // update local pagination object
             this.pagination.rowsPerPage = rowsPerPage
             this.pagination.page = page
-        },
-        requestProvinces() {
-            this.fetchProvinces(this.paramsProvinces)
         },
         filterProvince(val, update, abort) {
             update(() => {
@@ -418,22 +449,24 @@ export default defineComponent({
         showDialogEdit(id) {
             this.openDialogEdit = true
             this.selectedRow = id
-            const index = this.companies.result.findIndex(a => a.id === id)
+            const index = this.companies.findIndex(a => a.id === id)
             // this.companyToEdit = { ...this.companies.result[index] }
-            this.companyToEdit.name = this.companies.result[index].nama
-            this.companyToEdit.province = this.companies.result[index].provinsi
-            this.companyToEdit.city = this.companies.result[index].kab_kota
-            this.companyToEdit.type = this.companies.result[index].jenis
-            this.companyToEdit.address = this.companies.result[index].alamat
-            this.companyToEdit.id_province = this.companies.result[index].kode_provinsi
-            this.companyToEdit.id_city = this.companies.result[index].kode_kab_kota
-            this.paramsCities.id_provinsi = this.companies.result[index].kode_provinsi
+            this.companyToEdit.name = this.companies[index].nama
+            this.companyToEdit.province = this.companies[index].provinsi
+            this.companyToEdit.city = this.companies[index].kab_kota
+            this.companyToEdit.type = this.companies[index].jenis
+            this.companyToEdit.address = this.companies[index].alamat
+            this.companyToEdit.id_province = this.companies[index].kode_provinsi
+            this.companyToEdit.id_city = this.companies[index].kode_kab_kota
+            this.paramsCities.id_provinsi = this.companies[index].kode_provinsi
             this.fetchCitiesEdit()
         },
         showDialogDetails(id) {
             this.openDialogDetails = true
             this.selectedRow = id
-            this.fetchCompanyDetails(this.selectedRow)
+            fetchCompanyDetails(this.selectedRow).then((res) => {
+                this.companyDetails = res.data.data
+            })
         },
         showDialogDelete(id) {
             this.openDialogDelete = true
@@ -467,31 +500,52 @@ export default defineComponent({
         },
         addThisCompany() {
             const index = this.cities.findIndex(a => a.nama === this.companyToAdd.city)
-            this.companyToAdd.id_city = this.cities[index].id_kota_kabupaten
-            this.addCompany({ ...this.companyToAdd }).then((res) => {
-                this.fetchCompanies(this.paramsCompanies).then((res) => {
-                    this.pagination.rowsNumber = this.companies.total_record
+            if (this.cities[index].id_kota_kabupaten !== null) {
+                this.companyToAdd.id_city = this.cities[index].id_kota_kabupaten
+            } else {
+                this.companyToAdd.id_city = 0
+            }
+            addCompany({ ...this.companyToAdd }).then((res) => {
+                fetchCompanies(this.paramsCompanies).then((res) => {
+                    this.companies = res.data.data.result
+                    this.pagination.rowsNumber = res.data.data.total_record
+                    this.totalCompanies = res.data.data.total_record
                 })
             })
         },
         editThisCompany() {
             const index = this.cities.findIndex(a => a.nama === this.companyToEdit.city)
-            this.companyToEdit.id_city = this.cities[index].id_kota_kabupaten
-            this.updateCompany({
+            // ada perubahan
+            if (index != -1) {
+                if (this.cities[index].id_kota_kabupaten !== null) {
+                    this.companyToEdit.id_city = this.cities[index].id_kota_kabupaten
+                } else {
+                    this.companyToEdit.id_city = 0
+                }
+            }
+            // const index = this.cities.findIndex(a => a.id_kota_kabupaten === this.companyToEdit.id_city)
+            // this.companyToEdit.id_city = this.cities[index].id_kota_kabupaten
+            updateCompany({
                 id: this.selectedRow,
                 updates: this.companyToEdit
             }).then((res) => {
-                this.fetchCompanies(this.paramsCompanies)
+                fetchCompanies(this.paramsCompanies).then((res) => {
+                    this.companies = res.data.data.result
+                })
             })
         },
         deleteThisCompany() {
-            this.deleteCompany(this.selectedRow).then((res) => {
-                this.fetchCompanies(this.paramsCompanies)
+            deleteCompany(this.selectedRow).then((res) => {
+                fetchCompanies(this.paramsCompanies).then((res) => {
+                    this.companies = res.data.data.result
+                })
             })
         },
         restoreThisCompany() {
-            this.restoreCompany(this.selectedRow).then((res) => {
-                this.fetchCompanies(this.paramsCompanies)
+            restoreCompany(this.selectedRow).then((res) => {
+                fetchCompanies(this.paramsCompanies).then((res) => {
+                    this.companies = res.data.data.result
+                })
             })
         },
         resetFill() {
@@ -504,7 +558,8 @@ export default defineComponent({
             this.companyToAdd.id_city = null
         },
         fetchCitiesEdit() {
-            this.fetchCities(this.paramsCities).then((res) => {
+            fetchCities(this.paramsCities).then((res) => {
+                this.cities = res.data.data.result
                 this.cityOptions = this.cities.map(a => a.nama)
                 this.cityPick = this.cityOptions
             })
@@ -514,7 +569,8 @@ export default defineComponent({
             const index = this.provinces.findIndex(a => a.nama_provinsi === this.companyToEdit.province)
             this.paramsCities.id_provinsi = this.provinces[index].id_provinsi
             this.companyToEdit.id_province = this.provinces[index].id_provinsi
-            this.fetchCities(this.paramsCities).then((res) => {
+            fetchCities(this.paramsCities).then((res) => {
+                this.cities = res.data.data.result
                 this.cityOptions = this.cities.map(a => a.nama)
                 this.cityPick = this.cityOptions
             })
@@ -524,22 +580,36 @@ export default defineComponent({
             const index = this.provinces.findIndex(a => a.nama_provinsi === this.companyToAdd.province)
             this.paramsCities.id_provinsi = this.provinces[index].id_provinsi
             this.companyToAdd.id_province = this.provinces[index].id_provinsi
-            this.fetchCities(this.paramsCities).then((res) => {
+            fetchCities(this.paramsCities).then((res) => {
+                this.cities = res.data.data.result
                 this.cityOptions = this.cities.map(a => a.nama)
                 this.cityPick = this.cityOptions
+            })
+        },
+        filterSearch() {
+            this.pagination.page = 1
+            this.paramsCompanies.keyword = this.search
+            fetchCompanies(this.paramsCompanies).then((res) => {
+                this.companies = res.data.data.result
+                this.pagination.rowsNumber = res.data.data.total_record
+                this.totalCompanies = res.data.data.total_record
             })
         }
     },
     mounted() {
-        this.fetchCompanies(this.paramsCompanies).then((res) => {
-            this.pagination.rowsNumber = this.companies.total_record
+        fetchCompanies(this.paramsCompanies).then((res) => {
+            this.companies = res.data.data.result
+            this.pagination.rowsNumber = res.data.data.total_record
+            this.totalCompanies = res.data.data.total_record
         })
-        this.fetchProvinces(this.paramsProvinces).then((res) => {
+        fetchProvinces(this.paramsProvinces).then((res) => {
+            this.provinces = res.data.data.result
             this.provinceOptions = this.provinces.map(a => a.nama_provinsi)
             this.provincePick = this.provinceOptions
         })
-        this.fetchTypes().then((res) => {
-            this.typeOptions = this.types
+        fetchTypes().then((res) => {
+            this.types = res.data.data
+            this.typeOptions = res.data.data
         })
         // this.$store.dispatch("fetchCompanies")
     },
