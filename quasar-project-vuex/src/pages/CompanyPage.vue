@@ -6,7 +6,7 @@
             </div>
             <q-separator />
             <q-table class="q-ma-lg" bordered row-key="id" v-model:pagination="pagination" @request="onRequest"
-                :loading="loading" :rows="companies" :columns="[
+                :loading="loadingTable" :rows="companies" :columns="[
                     {
                         label: 'ID',
                         name: 'id',
@@ -79,14 +79,16 @@
                     </q-input>
                 </template>
                 <template v-slot:top-left>
-                    <q-select color="secondary" style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
+                    <q-select color="secondary"
+                        style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
                         label-color="grey-8" filled v-model="filterTypes" multiple :options="typeOptions" use-chips
                         stack-label label="Filter Jenis" @update:model-value="filterSearch()">
                         <template v-slot:prepend>
                             <q-icon name="checklist" />
                         </template>
                     </q-select>
-                    <q-select color="secondary" style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
+                    <q-select color="secondary"
+                        style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
                         label-color="grey-8" filled v-model="filterProvinces" multiple :options="provinceOptions" use-chips
                         stack-label label="Filter Provinsi" @update:model-value="filterSearch()">
                         <template v-slot:prepend>
@@ -346,17 +348,22 @@
                     <q-icon name="add_business" size="24px" />
                 </q-btn>
             </div>
+            <q-btn color="purple" @click="showNotif('cok')" label="Show Notification" />
+            <q-btn color="purple" @click="changeNotif('kon')" label="Show Notification" />
         </q-page>
     </q-page>
 </template>
     
 <script>
 import { defineComponent, ref } from 'vue'
+import { useQuasar } from "quasar";
 import { mapActions, mapGetters } from 'vuex'
 import { fetchCompanies, fetchProvinces, fetchCities, fetchTypes, addCompany, fetchCompanyDetails, updateCompany, deleteCompany, restoreCompany } from '../services/companies-api'
 
 export default defineComponent({
     setup() {
+        const $q = useQuasar()
+
         const pagination = ref({
             page: 1,
             rowsPerPage: 10,
@@ -422,7 +429,6 @@ export default defineComponent({
             cityOptions: ref([]),
             cityPick: ref([]),
             typeOptions: ref([]),
-            loading: ref(false),
             companies: ref([]),
             provinces: ref([]),
             cities: ref([]),
@@ -432,6 +438,21 @@ export default defineComponent({
             filterTypes: ref([]),
             filterProvinces: ref([]),
             filterCities: ref([]),
+            loadingMount: ref(true),
+            loadingTable: ref(true),
+            showNotif(tes) {
+                const notif = $q.notify({
+                    message: tes,
+                    type: 'ongoing'
+                })
+                setTimeout(() => {
+                    notif({
+                        message: 'kon',
+                        type: 'positive',
+                        timeout: 1000
+                    })
+                }, 4000)
+            },
         }
     },
     computed: {
@@ -449,8 +470,11 @@ export default defineComponent({
             this.paramsCompanies.offset = (page - 1) * rowsPerPage
 
             // fetch data from "server"
+            this.companies = []
+            this.loadingTable = true
             fetchCompanies(this.paramsCompanies).then((res) => {
                 this.companies = res.data.data.result
+                this.loadingTable = false
             })
 
             // update local pagination object
@@ -622,45 +646,13 @@ export default defineComponent({
                 })
             }
         },
-        filterSearch() {
-            this.filterFilter().then((res) => {
-                if (this.filterTypes.length > 0) {
-                    console.log("cok")
-                    let tempCompanies = []
-                    for (let i = 0; i < this.filterTypes.length; i++) {
-                        for (let j = 0; j < this.companies.length; j++) {
-                            if (this.companies[j].jenis.toLowerCase() === this.filterTypes[i].toLowerCase()) {
-                                tempCompanies.push(this.companies[j])
-                            }
-                        }
-                    }
-                    this.companies = tempCompanies
-                }
-            })
-        },
-        async filterFilter() {
-            this.fetchCitiesFilter().then((res) => {
-                let tempOptions = this.filterCities
-                for (let i = 0; i < tempOptions.length; i++) {
-                    let found = false
-                    for (let j = 0; j < this.cityOptions.length; j++) {
-                        if (this.cityOptions[j] === tempOptions[i]) {
-                            found = true
-                        }
-                    }
-                    if (!found) {
-                        this.filterCities.splice(i, 1)
-                    }
-                }
-            })
-
+        async fetchCompaniesFilter() {
             this.pagination.page = 1
             this.paramsCompanies.keyword = this.search
             this.paramsCompanies.kode_provinsi = null
             this.paramsCompanies.kode_kab_kota = null
             this.companies = []
             this.pagination.rowsNumber = 0
-            console.log("cok")
             if (this.filterCities.length === 0) {
                 if (this.filterProvinces.length > 0) {
                     for (let i = 0; i < this.filterProvinces.length; i++) {
@@ -695,23 +687,66 @@ export default defineComponent({
                     })
                 }
             }
+        },
+        filterSearch() {
+            this.filterFilter().then((res) => {
+                if (this.filterTypes.length > 0) {
+                    let tempCompanies = []
+                    for (let i = 0; i < this.filterTypes.length; i++) {
+                        for (let j = 0; j < this.companies.length; j++) {
+                            if (this.companies[j].jenis.toLowerCase() === this.filterTypes[i].toLowerCase()) {
+                                tempCompanies.push(this.companies[j])
+                            }
+                        }
+                    }
+                    this.companies = tempCompanies
+                }
+            })
+        },
+        async filterFilter() {
+            await this.fetchCitiesFilter().then((res) => {
+                let tempOptions = this.filterCities
+                for (let i = 0; i < tempOptions.length; i++) {
+                    let found = false
+                    for (let j = 0; j < this.cityOptions.length; j++) {
+                        if (this.cityOptions[j] === tempOptions[i]) {
+                            found = true
+                        }
+                    }
+                    if (!found) {
+                        this.filterCities.splice(i, 1)
+                    }
+                }
+            })
+            this.loadingTable = true
+            await this.fetchCompaniesFilter().then((res) => {
+                this.loadingTable = false
+            })
+        },
+        async load() {
+            await fetchCompanies(this.paramsCompanies).then((res) => {
+                this.companies = res.data.data.result
+                this.pagination.rowsNumber = res.data.data.total_record
+            })
+            await fetchProvinces(this.paramsProvinces).then((res) => {
+                this.provinces = res.data.data.result
+                this.provinceOptions = this.provinces.map(a => a.nama_provinsi)
+                this.provincePick = this.provinceOptions
+            })
+            await fetchTypes().then((res) => {
+                this.types = res.data.data
+                this.typeOptions = res.data.data
+            })
         }
     },
     mounted() {
-        fetchCompanies(this.paramsCompanies).then((res) => {
-            this.companies = res.data.data.result
-            this.pagination.rowsNumber = res.data.data.total_record
-        })
-        fetchProvinces(this.paramsProvinces).then((res) => {
-            this.provinces = res.data.data.result
-            this.provinceOptions = this.provinces.map(a => a.nama_provinsi)
-            this.provincePick = this.provinceOptions
-        })
-        fetchTypes().then((res) => {
-            this.types = res.data.data
-            this.typeOptions = res.data.data
-        })
-        // this.$store.dispatch("fetchCompanies")
+        this.load()
+            .then((res) => {
+                this.loadingTable = false
+            })
+            .catch((err) => {
+                console.log(err)
+            })
     },
 })
 </script>

@@ -6,7 +6,7 @@ import { authHeader } from './auth-header'
 async function fetchCompanies(params) {
     // console.log("request with limit", params.limit, "and offset", params.offset)
     try {
-        const res = await api.get('/v5/perusahaan', {
+        return await api.get('/v5/perusahaan', {
             params: {
                 keyword: params.keyword,
                 kode_provinsi: params.kode_provinsi,
@@ -15,7 +15,6 @@ async function fetchCompanies(params) {
                 offset: params.offset
             }
         })
-        return res
     } catch (error) {
         console.log(error)
     }
