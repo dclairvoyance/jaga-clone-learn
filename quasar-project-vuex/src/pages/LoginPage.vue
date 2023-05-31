@@ -25,30 +25,27 @@
                         <p class="text-red q-pa-none q-ma-none">{{ message }}</p>
                     </q-card-section>
                     <q-card-actions class="q-px-lg">
-                        <q-btn type="submit" unelevated size="lg" color="secondary" class="full-width text-white"
+                        <q-btn :loading="loadingLogin" type="submit" unelevated size="lg" color="secondary" class="full-width text-white"
                             label="Log In" />
                     </q-card-actions>
                     <q-card-section class="text-center">
                         <p class="text-grey-6">Don't have an account? Register</p>
                     </q-card-section>
                 </form>
+                <q-inner-loading :showing="loadingLogin" label="Tunggu sebentar..." />
             </q-card>
         </div>
     </q-page>
 </template>
   
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { mapActions, mapGetters } from 'vuex'
-import { useRouter } from "vue-router";
 
 export default defineComponent({
     setup() {
-        const router = useRouter()
         return {
-            redirect(path) {
-                router.push({ path: path })
-            },
+            loadingLogin: ref(false)
         }
     },
     data() {
@@ -71,7 +68,9 @@ export default defineComponent({
     methods: {
         ...mapActions('user', ['login']),
         submitLogin() {
+            this.loadingLogin = true
             this.login({ username: this.username, password: this.password }).then((res) => {
+                this.loadingLogin = false
                 this.$router.push('/companies')
             })
         }
