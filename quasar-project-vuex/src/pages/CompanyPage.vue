@@ -116,6 +116,10 @@
                 </template>
             </q-table>
 
+            <!--button reload-->
+            <q-btn class="q-mx-lg" v-if="errorTable" label="Retry" @click="reOnRequest" color="secondary"></q-btn>
+            <q-btn class="q-mx-lg" v-if="errorFilter" label="Retry" @click="filterSearch" color="secondary"></q-btn>
+
             <!--dialog add-->
             <q-dialog v-model="openDialogAdd" persistent>
                 <q-card style="min-width: 350px; width: 1400px">
@@ -444,6 +448,8 @@ export default defineComponent({
             loadingCityOptions: ref(true),
             loadingTable: ref(true),
             loadingAPI: ref(false),
+            errorTable: ref(false),
+            errorFilter: ref(false),
             notif: () => void 0,
             showNotif(message) {
                 this.notif = $q.notify({
@@ -477,12 +483,35 @@ export default defineComponent({
             // fetch data from "server"
             this.companies = []
             this.loadingTable = true
-            fetchCompanies(this.paramsCompanies).then((res) => {
-                this.companies = res.data.data.result
-                this.loadingTable = false
-            })
+            fetchCompanies(this.paramsCompanies)
+                .then((res) => {
+                    this.companies = res.data.data.result
+                    this.loadingTable = false
+                })
+                .catch((err) => {
+                    console.log(err)
+                    this.loadingTable = false
+                    this.errorTable = true
+                })
 
             // update local pagination object
+            this.pagination.rowsPerPage = rowsPerPage
+            this.pagination.page = page
+        },
+        reOnRequest() {
+            this.companies = []
+            this.loadingTable = true
+            fetchCompanies(this.paramsCompanies)
+                .then((res) => {
+                    this.companies = res.data.data.result
+                    this.loadingTable = false
+                    this.errorTable = false
+                })
+                .catch((err) => {
+                    console.log(err)
+                    this.loadingTable = false
+                    this.errorTable = true
+                })
             this.pagination.rowsPerPage = rowsPerPage
             this.pagination.page = page
         },
@@ -718,7 +747,8 @@ export default defineComponent({
         filterSearch() {
             this.companies = []
             this.loadingTable = true
-            this.filterFilter().then((res) => {
+            this.filterFilter()
+            .then((res) => {
                 if (this.filterTypes.length > 0) {
                     let tempCompanies = []
                     for (let i = 0; i < this.filterTypes.length; i++) {
@@ -730,6 +760,12 @@ export default defineComponent({
                     }
                     this.companies = tempCompanies
                 }
+                this.errorFilter = false
+            })
+            .catch((err) => {
+                this.errorFilter = true
+                this.loadingTable = false
+                this.loadingCityOptions = false
             })
         },
         async filterFilter() {

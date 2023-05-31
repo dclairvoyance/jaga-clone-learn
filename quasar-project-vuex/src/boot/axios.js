@@ -1,7 +1,9 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 
-const api = axios.create({ baseURL: 'http://cancer.akhdani.net:9005/jaga-phalcon/public' })
+const api = axios.create({ 
+  baseURL: 'http://cancer.akhdani.net:9005/jaga-phalcon/public',
+  timeout: 2000 })
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
