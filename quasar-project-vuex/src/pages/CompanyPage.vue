@@ -161,7 +161,7 @@
                                 bottom-slots v-model="companyToAdd.city" label="Kode Kota/Kabupaten" label-color="grey-8"
                                 color="secondary" :options="cityPick" use-chips stack-label
                                 :rules="[val => val !== null || 'Pilih satu kota/kabupaten']" @filter="filterCity"
-                                input-debounce="0">
+                                input-debounce="0" :loading="loadingCityOptions">
                                 <template v-slot:before>
                                     <q-icon name="home" />
                                 </template>
@@ -246,7 +246,7 @@
                                 bottom-slots v-model="companyToEdit.city" label="Kode Kota/Kabupaten" label-color="grey-8"
                                 color="secondary" :options="cityPick" use-chips stack-label
                                 :rules="[val => val !== null || 'Pilih satu kota/kabupaten']" @filter="filterCity"
-                                input-debounce="0">
+                                input-debounce="0" :loading="loadingCityOptions">
                                 <template v-slot:before>
                                     <q-icon name="home" />
                                 </template>
@@ -294,7 +294,9 @@
 
                     <q-separator />
 
-                    <q-card-section style="max-height: 50vh" class="scroll">
+                    <q-card-section style="max-height: 50vh; min-width: 20vh" class="scroll">
+                        <q-inner-loading :showing="companyDetails" label="Please wait..."
+                            label-style="font-size: 1.1em" />
                         <p>{{ companyDetails }}</p>
                     </q-card-section>
 
@@ -439,6 +441,7 @@ export default defineComponent({
             filterProvinces: ref([]),
             filterCities: ref([]),
             loadingMount: ref(true),
+            loadingCityOptions: ref(true),
             loadingTable: ref(true),
             showNotif(tes) {
                 const notif = $q.notify({
@@ -608,10 +611,13 @@ export default defineComponent({
             this.companyToAdd.id_city = null
         },
         fetchCitiesEdit() {
+            this.loadingCityOptions = true
+            this.cityOptions = []
             fetchCities(this.paramsCities).then((res) => {
                 this.cities = res.data.data.result
                 this.cityOptions = this.cities.map(a => a.nama)
                 this.cityPick = this.cityOptions
+                this.loadingCityOptions = false
             })
         },
         refetchCitiesEdit() {
@@ -619,10 +625,13 @@ export default defineComponent({
             const index = this.provinces.findIndex(a => a.nama_provinsi === this.companyToEdit.province)
             this.paramsCities.id_provinsi = this.provinces[index].id_provinsi
             this.companyToEdit.id_province = this.provinces[index].id_provinsi
+            this.loadingCityOptions = true
+            this.cityOptions = []
             fetchCities(this.paramsCities).then((res) => {
                 this.cities = res.data.data.result
                 this.cityOptions = this.cities.map(a => a.nama)
                 this.cityPick = this.cityOptions
+                this.loadingCityOptions = false
             })
         },
         refetchCities() {
@@ -630,10 +639,13 @@ export default defineComponent({
             const index = this.provinces.findIndex(a => a.nama_provinsi === this.companyToAdd.province)
             this.paramsCities.id_provinsi = this.provinces[index].id_provinsi
             this.companyToAdd.id_province = this.provinces[index].id_provinsi
+            this.loadingCityOptions = true
+            this.cityOptions = []
             fetchCities(this.paramsCities).then((res) => {
                 this.cities = res.data.data.result
                 this.cityOptions = this.cities.map(a => a.nama)
                 this.cityPick = this.cityOptions
+                this.loadingCityOptions = false
             })
         },
         async fetchCitiesFilter() {
