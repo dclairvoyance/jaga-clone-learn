@@ -9,8 +9,9 @@
         </q-toolbar-title>
 
         <q-icon name="notifications" size="1.715em" class="margin-button" />
+        <q-icon name="person" size="1.715em" class="margin-button" />
         <q-btn class="margin-button" flat @click="logOut">
-          <q-icon name="person" size="1.715em"></q-icon>
+          <q-icon name="logout" size="1.715em"></q-icon>
         </q-btn>
       </q-toolbar>
     </q-header>
