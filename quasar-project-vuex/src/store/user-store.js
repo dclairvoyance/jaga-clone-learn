@@ -9,7 +9,8 @@ const initialState = userLocal
     
 
 const state = {
-    user: initialState,
+    user: initialState.user,
+    loggedIn: initialState.loggedIn,
     message: ""
 }
 
@@ -21,6 +22,11 @@ const mutations = {
     },
     loginFailed(state, message) {
         state.message = message
+    },
+    logout(state) {
+        state.loggedIn = false
+        state.user = null
+        state.message = "Logged out"
     }
 }
 
@@ -31,19 +37,26 @@ const actions = {
             if (res.data.success) {
                 localStorage.setItem('user', JSON.stringify(res.data.data.token))
                 commit('login', res.data.data.token)
-                this.$router.push('/')
             } else {
                 commit('loginFailed', res.data.message)
             }
         } catch (error) {
             console.log(error)
         }
+    },
+
+    logout({ commit }, user) {
+        localStorage.removeItem('user')
+        commit('logout')
     }
 }
 
 const getters = {
     user: (state) => {
         return state.user
+    },
+    loggedIn: (state) => {
+        return state.loggedIn
     },
     message: (state) => {
         return state.message

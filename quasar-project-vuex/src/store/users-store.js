@@ -33,7 +33,6 @@ const mutations = {
     },
     addUser(state, user) {
         // Vue.set(state.users, user.id, user.user)
-        console.log(user)
         state.users[user.id] = user.user
     },
     updateUser(state, user) {

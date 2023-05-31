@@ -9,7 +9,9 @@
         </q-toolbar-title>
 
         <q-icon name="notifications" size="1.715em" class="margin-button" />
-        <q-icon name="person" size="1.715em" class="margin-button" />
+        <q-btn class="margin-button" flat @click="logOut">
+          <q-icon name="person" size="1.715em"></q-icon>
+        </q-btn>
       </q-toolbar>
     </q-header>
 
@@ -32,6 +34,7 @@
 
 <script>
 import { defineComponent, ref } from 'vue'
+import { mapActions } from 'vuex'
 import EssentialLink from 'components/EssentialLink.vue'
 
 const linksList = [
@@ -71,6 +74,14 @@ export default defineComponent({
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value
       }
+    }
+  },
+  methods: {
+    ...mapActions('user', ['logout']),
+    logOut() {
+      this.logout().then(() => {
+        this.$router.push('/auth')
+      })
     }
   }
 })

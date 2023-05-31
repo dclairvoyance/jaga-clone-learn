@@ -27,7 +27,7 @@ export default route(function ({ store } /* { ssrContext } */) {
   })
 
   Router.beforeEach((to, from, next) => {
-    if (to.matched.some(record => record.meta.requiresAuth) && !store.getters['user/user'].loggedIn) {
+    if (to.matched.some(record => record.meta.requiresAuth) && !store.getters['user/loggedIn']) {
       // next({ name: 'account-signin', query: { next: to.fullPath } })
       next({ path: '/auth' })
     } else {

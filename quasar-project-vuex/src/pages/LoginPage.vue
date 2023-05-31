@@ -60,7 +60,7 @@ export default defineComponent({
     computed: {
         ...mapGetters('user', ['message']),
         isLoggedIn() {
-            return this.$store.getters['user/user'].loggedIn
+            return this.$store.getters['user/loggedIn']
         }
     },
     created() {
@@ -72,7 +72,7 @@ export default defineComponent({
         ...mapActions('user', ['login']),
         submitLogin() {
             this.login({ username: this.username, password: this.password }).then((res) => {
-                this.$router.go('/')
+                this.$router.push('/companies')
             })
         }
     }
