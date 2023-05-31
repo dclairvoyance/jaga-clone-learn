@@ -98,7 +98,8 @@
                     <q-select color="secondary" v-if="filterProvinces.length > 0"
                         style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
                         label-color="grey-8" filled v-model="filterCities" multiple :options="cityOptions" use-chips
-                        stack-label label="Filter Kab/Kota" @update:model-value="filterSearch()">
+                        stack-label label="Filter Kab/Kota" @update:model-value="filterSearch()"
+                        :loading="loadingCityOptions">
                         <template v-slot:prepend>
                             <q-icon name="home" />
                         </template>
@@ -197,6 +198,7 @@
                             <q-btn label="Batal" color="grey-8" v-close-popup />
                         </q-card-actions>
                     </form>
+                    <q-inner-loading :showing="loadingAPI" label="Tunggu sebentar..." />
                 </q-card>
             </q-dialog>
 
@@ -282,6 +284,7 @@
                             <q-btn label="Batal" color="grey-8" v-close-popup />
                         </q-card-actions>
                     </form>
+                    <q-inner-loading :showing="loadingAPI" label="Tunggu sebentar..." />
                 </q-card>
             </q-dialog>
 
@@ -295,8 +298,7 @@
                     <q-separator />
 
                     <q-card-section style="max-height: 50vh; min-width: 20vh" class="scroll">
-                        <q-inner-loading :showing="companyDetails" label="Please wait..."
-                            label-style="font-size: 1.1em" />
+                        <q-inner-loading :showing="companyDetails" label="Tunggu sebentar..." />
                         <p>{{ companyDetails }}</p>
                     </q-card-section>
 
@@ -350,8 +352,6 @@
                     <q-icon name="add_business" size="24px" />
                 </q-btn>
             </div>
-            <q-btn color="purple" @click="showNotif('cok')" label="Show Notification" />
-            <q-btn color="purple" @click="changeNotif('kon')" label="Show Notification" />
         </q-page>
     </q-page>
 </template>
@@ -364,8 +364,6 @@ import { fetchCompanies, fetchProvinces, fetchCities, fetchTypes, addCompany, fe
 
 export default defineComponent({
     setup() {
-        const $q = useQuasar()
-
         const pagination = ref({
             page: 1,
             rowsPerPage: 10,
@@ -413,6 +411,8 @@ export default defineComponent({
             id_city: null
         })
 
+        const $q = useQuasar()
+
         return {
             paramsCompanies,
             paramsProvinces,
@@ -443,18 +443,20 @@ export default defineComponent({
             loadingMount: ref(true),
             loadingCityOptions: ref(true),
             loadingTable: ref(true),
-            showNotif(tes) {
-                const notif = $q.notify({
-                    message: tes,
-                    type: 'ongoing'
+            loadingAPI: ref(false),
+            notif: () => void 0,
+            showNotif(message) {
+                this.notif = $q.notify({
+                    type: 'ongoing',
+                    message: message
                 })
-                setTimeout(() => {
-                    notif({
-                        message: 'kon',
-                        type: 'positive',
-                        timeout: 1000
-                    })
-                }, 4000)
+            },
+            hideNotif(message) {
+                this.notif({
+                    type: 'positive',
+                    message: message,
+                    timeout: 1000
+                })
             },
         }
     },
@@ -538,7 +540,6 @@ export default defineComponent({
             this.$refs.address.validate()
             if (!this.$refs.name.hasError && !this.$refs.address.hasError && this.companyToAdd.province.length > 0 && this.companyToAdd.city.length > 0 && this.companyToAdd.type.length > 0) {
                 this.addThisCompany()
-                this.openDialogAdd = false
             }
         },
         submitFormEdit() {
@@ -549,10 +550,11 @@ export default defineComponent({
             this.$refs.address.validate()
             if (!this.$refs.name.hasError && !this.$refs.address.hasError && this.companyToEdit.province !== null && this.companyToEdit.city !== null && this.companyToEdit.type !== null) {
                 this.editThisCompany()
-                this.openDialogEdit = false
             }
         },
         addThisCompany() {
+            this.showNotif('Data sedang di-upload...')
+            this.loadingAPI = true
             const index = this.cities.findIndex(a => a.nama === this.companyToAdd.city)
             if (this.cities[index].id_kota_kabupaten !== null) {
                 this.companyToAdd.id_city = this.cities[index].id_kota_kabupaten
@@ -563,10 +565,15 @@ export default defineComponent({
                 fetchCompanies(this.paramsCompanies).then((res) => {
                     this.companies = res.data.data.result
                     this.pagination.rowsNumber = res.data.data.total_record
+                    this.hideNotif('Data berhasil di-upload!')
+                    this.loadingAPI = false
+                    this.openDialogAdd = false
                 })
             })
         },
         editThisCompany() {
+            this.showNotif('Data sedang di-update...')
+            this.loadingAPI = true
             const index = this.cities.findIndex(a => a.nama === this.companyToEdit.city)
             // ada perubahan
             if (index != -1) {
@@ -584,20 +591,27 @@ export default defineComponent({
             }).then((res) => {
                 fetchCompanies(this.paramsCompanies).then((res) => {
                     this.companies = res.data.data.result
+                    this.hideNotif('Data berhasil di-update!')
+                    this.loadingAPI = false
+                    this.openDialogEdit = false
                 })
             })
         },
         deleteThisCompany() {
+            this.showNotif('Data sedang dihapus...')
             deleteCompany(this.selectedRow).then((res) => {
                 fetchCompanies(this.paramsCompanies).then((res) => {
                     this.companies = res.data.data.result
+                    this.hideNotif('Data berhasil dihapus!')
                 })
             })
         },
         restoreThisCompany() {
+            this.showNotif('Data sedang direstorasi...')
             restoreCompany(this.selectedRow).then((res) => {
                 fetchCompanies(this.paramsCompanies).then((res) => {
                     this.companies = res.data.data.result
+                    this.hideNotif('Data berhasil direstorasi!')
                 })
             })
         },
@@ -649,6 +663,7 @@ export default defineComponent({
             })
         },
         async fetchCitiesFilter() {
+            this.loadingCityOptions = true
             this.cityOptions = []
             for (let i = 0; i < this.filterProvinces.length; i++) {
                 const index = this.provinces.findIndex(a => a.nama_provinsi === this.filterProvinces[i])
@@ -701,6 +716,8 @@ export default defineComponent({
             }
         },
         filterSearch() {
+            this.companies = []
+            this.loadingTable = true
             this.filterFilter().then((res) => {
                 if (this.filterTypes.length > 0) {
                     let tempCompanies = []
@@ -729,8 +746,8 @@ export default defineComponent({
                         this.filterCities.splice(i, 1)
                     }
                 }
+                this.loadingCityOptions = false
             })
-            this.loadingTable = true
             await this.fetchCompaniesFilter().then((res) => {
                 this.loadingTable = false
             })
