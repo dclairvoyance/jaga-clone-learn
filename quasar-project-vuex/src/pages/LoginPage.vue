@@ -72,8 +72,7 @@ export default defineComponent({
         ...mapActions('user', ['login']),
         submitLogin() {
             this.login({ username: this.username, password: this.password }).then((res) => {
-                this.$router.push('/')
-                window.location.reload()
+                this.$router.go('/')
             })
         }
     }
