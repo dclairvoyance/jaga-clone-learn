@@ -79,21 +79,21 @@
                     </q-input>
                 </template>
                 <template v-slot:top-left>
-                    <q-select color="black" style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
+                    <q-select color="secondary" style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
                         label-color="grey-8" filled v-model="filterTypes" multiple :options="typeOptions" use-chips
                         stack-label label="Filter Jenis" @update:model-value="filterSearch()">
                         <template v-slot:prepend>
                             <q-icon name="checklist" />
                         </template>
                     </q-select>
-                    <q-select color="black" style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
+                    <q-select color="secondary" style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
                         label-color="grey-8" filled v-model="filterProvinces" multiple :options="provinceOptions" use-chips
                         stack-label label="Filter Provinsi" @update:model-value="filterSearch()">
                         <template v-slot:prepend>
                             <q-icon name="house" />
                         </template>
                     </q-select>
-                    <q-select color="black" v-if="filterProvinces.length > 0"
+                    <q-select color="secondary" v-if="filterProvinces.length > 0"
                         style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
                         label-color="grey-8" filled v-model="filterCities" multiple :options="cityOptions" use-chips
                         stack-label label="Filter Kab/Kota" @update:model-value="filterSearch()">
@@ -423,7 +423,6 @@ export default defineComponent({
             cityPick: ref([]),
             typeOptions: ref([]),
             loading: ref(false),
-            totalCompanies: ref(0),
             companies: ref([]),
             provinces: ref([]),
             cities: ref([]),
@@ -469,14 +468,6 @@ export default defineComponent({
                 const search = val.toLowerCase()
                 this.cityPick = this.cityOptions.filter(v => v.toLowerCase().indexOf(search) > -1)
             })
-        },
-        filterAll() {
-            const filteredHomes = json.homes.filter(x =>
-                x.price <= 1000 &&
-                x.sqft >= 500 &&
-                x.num_of_beds >= 2 &&
-                x.num_of_baths >= 2.5
-            );
         },
         showDialogAdd() {
             this.openDialogAdd = true
@@ -545,7 +536,6 @@ export default defineComponent({
                 fetchCompanies(this.paramsCompanies).then((res) => {
                     this.companies = res.data.data.result
                     this.pagination.rowsNumber = res.data.data.total_record
-                    this.totalCompanies = res.data.data.total_record
                 })
             })
         },
@@ -611,16 +601,6 @@ export default defineComponent({
                 this.cityPick = this.cityOptions
             })
         },
-        async fetchCitiesFilter() {
-            this.cityOptions = []
-            for (let i = 0; i < this.filterProvinces.length; i++) {
-                const index = this.provinces.findIndex(a => a.nama_provinsi === this.filterProvinces[i])
-                this.paramsCities.id_provinsi = this.provinces[index].id_provinsi
-                await fetchCities(this.paramsCities).then((res) => {
-                    this.cityOptions.push(...res.data.data.result.map(a => a.id_kota_kabupaten))
-                })
-            }
-        },
         refetchCities() {
             this.companyToAdd.city = ""
             const index = this.provinces.findIndex(a => a.nama_provinsi === this.companyToAdd.province)
@@ -632,7 +612,33 @@ export default defineComponent({
                 this.cityPick = this.cityOptions
             })
         },
+        async fetchCitiesFilter() {
+            this.cityOptions = []
+            for (let i = 0; i < this.filterProvinces.length; i++) {
+                const index = this.provinces.findIndex(a => a.nama_provinsi === this.filterProvinces[i])
+                this.paramsCities.id_provinsi = this.provinces[index].id_provinsi
+                await fetchCities(this.paramsCities).then((res) => {
+                    this.cityOptions.push(...res.data.data.result.map(a => a.id_kota_kabupaten))
+                })
+            }
+        },
         filterSearch() {
+            this.filterFilter().then((res) => {
+                if (this.filterTypes.length > 0) {
+                    console.log("cok")
+                    let tempCompanies = []
+                    for (let i = 0; i < this.filterTypes.length; i++) {
+                        for (let j = 0; j < this.companies.length; j++) {
+                            if (this.companies[j].jenis.toLowerCase() === this.filterTypes[i].toLowerCase()) {
+                                tempCompanies.push(this.companies[j])
+                            }
+                        }
+                    }
+                    this.companies = tempCompanies
+                }
+            })
+        },
+        async filterFilter() {
             this.fetchCitiesFilter().then((res) => {
                 let tempOptions = this.filterCities
                 for (let i = 0; i < tempOptions.length; i++) {
@@ -654,19 +660,20 @@ export default defineComponent({
             this.paramsCompanies.kode_kab_kota = null
             this.companies = []
             this.pagination.rowsNumber = 0
+            console.log("cok")
             if (this.filterCities.length === 0) {
                 if (this.filterProvinces.length > 0) {
                     for (let i = 0; i < this.filterProvinces.length; i++) {
                         const index = this.provinces.findIndex(a => a.nama_provinsi === this.filterProvinces[i])
                         this.paramsCompanies.kode_provinsi = this.provinces[index].id_provinsi
-                        fetchCompanies(this.paramsCompanies).then((res) => {
+                        await fetchCompanies(this.paramsCompanies).then((res) => {
                             this.companies.push(...res.data.data.result)
                             this.pagination.rowsNumber += res.data.data.total_record
                         })
                     }
                 } else {
                     this.paramsCompanies.kode_provinsi = null
-                    fetchCompanies(this.paramsCompanies).then((res) => {
+                    await fetchCompanies(this.paramsCompanies).then((res) => {
                         this.companies.push(...res.data.data.result)
                         this.pagination.rowsNumber += res.data.data.total_record
                     })
@@ -675,27 +682,25 @@ export default defineComponent({
                 if (this.filterProvinces.length > 0) {
                     for (let i = 0; i < this.filterCities.length; i++) {
                         this.paramsCompanies.kode_kab_kota = this.filterCities[i]
-                        fetchCompanies(this.paramsCompanies).then((res) => {
+                        await fetchCompanies(this.paramsCompanies).then((res) => {
                             this.companies.push(...res.data.data.result)
                             this.pagination.rowsNumber += res.data.data.total_record
                         })
                     }
                 } else {
                     this.paramsCompanies.kode_provinsi = null
-                    fetchCompanies(this.paramsCompanies).then((res) => {
+                    await fetchCompanies(this.paramsCompanies).then((res) => {
                         this.companies.push(...res.data.data.result)
                         this.pagination.rowsNumber += res.data.data.total_record
                     })
                 }
             }
-            // filter type
         }
     },
     mounted() {
         fetchCompanies(this.paramsCompanies).then((res) => {
             this.companies = res.data.data.result
             this.pagination.rowsNumber = res.data.data.total_record
-            this.totalCompanies = res.data.data.total_record
         })
         fetchProvinces(this.paramsProvinces).then((res) => {
             this.provinces = res.data.data.result
