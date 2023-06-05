@@ -498,3 +498,9 @@ computed: {
 # email: required, sortable
 # roles: multi, required, sortable -> TODO:filterable
 # instansi: TODO
+
+# TODO:
+# - debounce: DONE
+# - retry kalau gagal: ONPROGRESS
+# - nama bukan kode kab/kota: DONE
+# - pesan error kalau gagal: TODO

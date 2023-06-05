@@ -71,7 +71,7 @@
                     },
                 ]">
                 <template v-slot:top-right>
-                    <q-input v-model="search" borderless dense debounce="300" placeholder="Search"
+                    <q-input v-model="search" borderless dense debounce="500" placeholder="Search"
                         @update:model-value="filterSearch()">
                         <template v-slot:append>
                             <q-icon name="search" />
@@ -82,17 +82,24 @@
                     <q-select color="secondary"
                         style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
                         label-color="grey-8" filled v-model="filterTypes" multiple :options="typeOptions" use-chips
-                        stack-label label="Filter Jenis" @update:model-value="filterSearch()">
+                        stack-label label="Filter Jenis" @update:model-value="filterSearch()" :loading="loadingTypeOptions">
                         <template v-slot:prepend>
                             <q-icon name="checklist" />
+                        </template>
+                        <template v-slot:append>
+                            <q-btn v-if="errorTypeOptions" dense flat icon="replay" @click="loadTypes" />
                         </template>
                     </q-select>
                     <q-select color="secondary"
                         style="min-width:200px; margin-right: 16px; margin-bottom: 8px; margin-top: 8px"
                         label-color="grey-8" filled v-model="filterProvinces" multiple :options="provinceOptions" use-chips
-                        stack-label label="Filter Provinsi" @update:model-value="filterSearch()">
+                        stack-label label="Filter Provinsi" @update:model-value="filterSearch()"
+                        :loading="loadingProvinceOptions">
                         <template v-slot:prepend>
                             <q-icon name="house" />
+                        </template>
+                        <template v-slot:append>
+                            <q-btn v-if="errorProvinceOptions" dense flat icon="replay" @click="loadProvinces" />
                         </template>
                     </q-select>
                     <q-select color="secondary" v-if="filterProvinces.length > 0"
@@ -102,6 +109,9 @@
                         :loading="loadingCityOptions">
                         <template v-slot:prepend>
                             <q-icon name="home" />
+                        </template>
+                        <template v-slot:append>
+                            <q-btn v-if="errorCityOptions" dense flat icon="replay" @click="fetchCitiesFilter" />
                         </template>
                     </q-select>
                 </template>
@@ -116,9 +126,11 @@
                 </template>
             </q-table>
 
-            <!--button reload-->
-            <q-btn class="q-mx-lg" v-if="errorTable" label="Retry" @click="reOnRequest" color="secondary"></q-btn>
-            <q-btn class="q-mx-lg" v-if="errorFilter" label="Retry" @click="filterSearch" color="secondary"></q-btn>
+            <!--button retry-->
+            <q-btn class="q-mx-lg" v-if="errorFilter" icon="replay" label="Retry" @click="filterSearch"
+                color="secondary"></q-btn>
+            <q-btn class="q-mx-lg" v-else-if="errorTable" icon="replay" label="Retry" @click="reOnRequest"
+                color="secondary"></q-btn>
 
             <!--dialog add-->
             <q-dialog v-model="openDialogAdd" persistent>
@@ -445,11 +457,16 @@ export default defineComponent({
             filterProvinces: ref([]),
             filterCities: ref([]),
             loadingMount: ref(true),
+            loadingTypeOptions: ref(true),
+            loadingProvinceOptions: ref(true),
             loadingCityOptions: ref(true),
             loadingTable: ref(true),
             loadingAPI: ref(false),
             errorTable: ref(false),
             errorFilter: ref(false),
+            errorTypeOptions: ref(false),
+            errorProvinceOptions: ref(false),
+            errorCityOptions: ref(false),
             notif: () => void 0,
             showNotif(message) {
                 this.notif = $q.notify({
@@ -693,13 +710,22 @@ export default defineComponent({
         },
         async fetchCitiesFilter() {
             this.loadingCityOptions = true
+            this.errorCityOptions = false
             this.cityOptions = []
             for (let i = 0; i < this.filterProvinces.length; i++) {
                 const index = this.provinces.findIndex(a => a.nama_provinsi === this.filterProvinces[i])
                 this.paramsCities.id_provinsi = this.provinces[index].id_provinsi
-                await fetchCities(this.paramsCities).then((res) => {
-                    this.cityOptions.push(...res.data.data.result.map(a => a.id_kota_kabupaten))
-                })
+                await fetchCities(this.paramsCities)
+                    .then((res) => {
+                        this.cities = res.data.data.result
+                        this.cityOptions = this.cities.map(a => a.nama)
+                        // this.cityOptions.push(...res.data.data.result.map(a => a.nama))
+                        this.loadingCityOptions = false
+                    })
+                    .catch((err) => {
+                        this.errorCityOptions = true
+                        this.loadingCityOptions = false
+                    })
             }
         },
         async fetchCompaniesFilter() {
@@ -729,7 +755,9 @@ export default defineComponent({
             } else {
                 if (this.filterProvinces.length > 0) {
                     for (let i = 0; i < this.filterCities.length; i++) {
-                        this.paramsCompanies.kode_kab_kota = this.filterCities[i]
+                        // convert city name to city id
+                        const index = this.cities.findIndex(a => a.nama === this.filterCities[i])
+                        this.paramsCompanies.kode_kab_kota = this.cities[index].id_kota_kabupaten
                         await fetchCompanies(this.paramsCompanies).then((res) => {
                             this.companies.push(...res.data.data.result)
                             this.pagination.rowsNumber += res.data.data.total_record
@@ -748,60 +776,101 @@ export default defineComponent({
             this.companies = []
             this.loadingTable = true
             this.filterFilter()
-            .then((res) => {
-                if (this.filterTypes.length > 0) {
-                    let tempCompanies = []
-                    for (let i = 0; i < this.filterTypes.length; i++) {
-                        for (let j = 0; j < this.companies.length; j++) {
-                            if (this.companies[j].jenis.toLowerCase() === this.filterTypes[i].toLowerCase()) {
-                                tempCompanies.push(this.companies[j])
+                .then((res) => {
+                    // filter type
+                    if (this.filterTypes.length > 0) {
+                        let tempCompanies = []
+                        for (let i = 0; i < this.filterTypes.length; i++) {
+                            for (let j = 0; j < this.companies.length; j++) {
+                                if (this.companies[j].jenis.toLowerCase() === this.filterTypes[i].toLowerCase()) {
+                                    tempCompanies.push(this.companies[j])
+                                }
                             }
                         }
+                        this.companies = tempCompanies
                     }
-                    this.companies = tempCompanies
-                }
-                this.errorFilter = false
-            })
-            .catch((err) => {
-                this.errorFilter = true
-                this.loadingTable = false
-                this.loadingCityOptions = false
-            })
+                    this.errorFilter = false
+                })
+                .catch((err) => {
+                    this.errorFilter = true
+                    this.loadingTable = false
+                    this.loadingCityOptions = false
+                })
         },
         async filterFilter() {
-            await this.fetchCitiesFilter().then((res) => {
-                let tempOptions = this.filterCities
-                for (let i = 0; i < tempOptions.length; i++) {
-                    let found = false
-                    for (let j = 0; j < this.cityOptions.length; j++) {
-                        if (this.cityOptions[j] === tempOptions[i]) {
-                            found = true
+            // sync city options with province options
+            await this.fetchCitiesFilter()
+                .then((res) => {
+                    let tempOptions = this.filterCities
+                    for (let i = 0; i < tempOptions.length; i++) {
+                        let found = false
+                        for (let j = 0; j < this.cityOptions.length; j++) {
+                            if (this.cityOptions[j] === tempOptions[i]) {
+                                found = true
+                            }
+                        }
+                        if (!found) {
+                            this.filterCities.splice(i, 1)
                         }
                     }
-                    if (!found) {
-                        this.filterCities.splice(i, 1)
-                    }
-                }
-                this.loadingCityOptions = false
-            })
+                    this.loadingCityOptions = false
+                })
+                .catch((err) => {
+                    console.log(err)
+                    // TODO: retry filter cities here
+                })
+            // filter companies based on filters
             await this.fetchCompaniesFilter().then((res) => {
                 this.loadingTable = false
             })
         },
+        async loadCompanies() {
+            await fetchCompanies(this.paramsCompanies)
+                .then((res) => {
+                    this.companies = res.data.data.result
+                    this.pagination.rowsNumber = res.data.data.total_record
+                    this.errorTable = false
+                })
+                .catch((err) => {
+                    console.log(err)
+                    this.errorTable = true
+                })
+        },
+        async loadProvinces() {
+            this.loadingProvinceOptions = true
+            this.errorProvinceOptions = false
+            fetchProvinces(this.paramsProvinces)
+                .then((res) => {
+                    this.provinces = res.data.data.result
+                    this.provinceOptions = this.provinces.map(a => a.nama_provinsi)
+                    this.provincePick = this.provinceOptions
+                    this.loadingProvinceOptions = false
+                })
+                .catch((err) => {
+                    console.log(err)
+                    this.errorProvinceOptions = true
+                    this.loadingProvinceOptions = false
+                })
+        },
+        async loadTypes() {
+            this.loadingTypeOptions = true
+            this.errorTypeOptions = false
+            fetchTypes()
+                .then((res) => {
+                    this.types = res.data.data
+                    this.typeOptions = res.data.data
+                    this.loadingTypeOptions = false
+                })
+                .catch((err) => {
+                    console.log(err)
+                    this.errorTypeOptions = true
+                    this.loadingTypeOptions = false
+                })
+        },
         async load() {
-            await fetchCompanies(this.paramsCompanies).then((res) => {
-                this.companies = res.data.data.result
-                this.pagination.rowsNumber = res.data.data.total_record
-            })
-            await fetchProvinces(this.paramsProvinces).then((res) => {
-                this.provinces = res.data.data.result
-                this.provinceOptions = this.provinces.map(a => a.nama_provinsi)
-                this.provincePick = this.provinceOptions
-            })
-            await fetchTypes().then((res) => {
-                this.types = res.data.data
-                this.typeOptions = res.data.data
-            })
+            await this.loadCompanies()
+            await this.loadProvinces()
+            await this.loadTypes()
         }
     },
     mounted() {
@@ -811,6 +880,7 @@ export default defineComponent({
             })
             .catch((err) => {
                 console.log(err)
+                this.loadingTable = false
             })
     },
 })
